@@ -10,8 +10,8 @@
 - **Frontend**: React + Vite + TypeScript
 - **Backend**: Node.js + Socket.IO + TypeScript
 - **共有コード**: npm workspaces で型・定数・純粋ロジックを共有
-- **永続化**: インメモリのみ(プロトタイプ範囲)
-- **実行環境**: localhost、開発サーバー起動
+- **永続化**: PostgreSQL(Drizzle ORM、サーバー起動時に自動マイグレーション)
+- **実行環境**: docker-compose(postgres / server / client の3サービス)
 
 ## 3. プロジェクト構造
 
@@ -336,9 +336,35 @@ export function hasFullSet(player: Player): boolean {
 
 ## 12. 非対応(プロトタイプ範囲外)
 - 本格認証(ログイン、JWT、パスワード)
-- 複数ルーム・マッチメイキング
+- 複数ルーム・マッチメイキング(スキーマは `rooms` テーブルで複数対応済み、UI 未実装)
 - 切断タイムアウトによる強制離脱(現状は無期限保持)
-- 永続化(DB、サーバー再起動で状態消失)
-- デプロイ、CI/CD
+- Redis Socket.IO adapter による水平スケール
+- 本番デプロイ用マニフェスト、TLS、CI/CD
 - モバイル最適化UI
 - AI 対戦プレイヤー
+
+## 13. 永続化スキーマ
+
+Drizzle ORM で定義、Postgres 上に以下のテーブル:
+
+- `rooms` (id, phase, turn_index, turn_order[], winner_id, updated_at)
+- `players` (room_id, user_id, name, brand, cash, fakes_used, passed, online, seat_index) — PK (room_id, user_id)
+- `cards` (id, room_id, brand, holder_id, location) — location: `hand` | `collection` | `auction`
+- `auctions` (room_id PK, seller_id, card_id, declared_brand, starting_bid, current_bid, highest_bidder_id, passed_player_ids[])
+
+### トランザクション境界
+
+各 Socket.IO イベントハンドラが `withTx` で単一トランザクションを形成:
+
+1. `loadRoomState(tx)` でフル状態を DB から再構築
+2. `gameEngine` の純粋関数で状態をメモリ上で変更
+3. `saveRoomState(tx, state)` で全テーブルを削除+再挿入
+4. コミット後に Socket.IO でビュー配信
+
+イベント単位の ACID を担保するが、楽観ロックは未実装(同一ルーム内の並行書き込みは直列化のみ)。
+
+### マイグレーション
+
+- `packages/server/drizzle/` に SQL 配置
+- サーバー起動時 `runMigrations()` が自動適用
+- スキーマ変更は `npm run db:generate` で新マイグレーション生成

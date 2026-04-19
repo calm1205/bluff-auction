@@ -12,28 +12,64 @@
 
 - Frontend: React + Vite + TypeScript
 - Backend: Node.js + Socket.IO + TypeScript
+- 永続化: PostgreSQL(Drizzle ORM)
 - Monorepo: npm workspaces
+- 配布: Docker + docker-compose
 
 ## ディレクトリ構成
 
 ```
 packages/
   shared/   # 型・定数・純粋ロジック
-  server/   # Socket.IO サーバー
+  server/   # Socket.IO サーバー + DB 永続化
   client/   # React クライアント
+docker-compose.yml
 ```
 
-## 開発
+## 起動(Docker、推奨)
+
+```bash
+docker compose up --build
+```
+
+- クライアント: http://localhost:8080
+- サーバー: http://localhost:4000
+- Postgres: localhost:5432(user=bluff / pass=bluff / db=bluff)
+- マイグレーションはサーバー起動時に自動適用
+
+停止・再起動:
+
+```bash
+docker compose down            # コンテナ停止(DB データは保持)
+docker compose down -v         # DB ボリュームごと削除(完全リセット)
+docker compose restart server  # サーバーのみ再起動(状態永続化の確認)
+```
+
+## 開発(ローカル、Docker なし)
+
+Postgres をローカル起動してから:
 
 ```bash
 # 依存インストール
 npm install
 
-# サーバー起動(別ターミナル)
+# DB 接続設定
+export DATABASE_URL=postgres://bluff:bluff@localhost:5432/bluff
+
+# サーバー起動(別ターミナル、起動時にマイグレーション適用)
 npm run dev:server
 
 # クライアント起動(別ターミナル)
 npm run dev:client
+```
+
+### マイグレーション
+
+スキーマ変更時は `packages/server/src/db/schema.ts` を編集してから:
+
+```bash
+npm run db:generate --workspace=@bluff-auction/server  # マイグレーション生成
+# 次回サーバー起動時に自動適用(手動適用する場合は db:migrate)
 ```
 
 ### コード品質
@@ -54,5 +90,7 @@ npm run format:check
 ## プレイ方法
 
 - 4人のプレイヤーでローカル動作
-- 各自が別タブ/別ブラウザで `http://localhost:5173` にアクセス
+- 各自が別タブ/別ブラウザでアクセス
+  - Docker 経由: `http://localhost:8080`
+  - ローカル開発: `http://localhost:5173`
 - ロビーで名前を入力 → 4人揃ったらゲーム開始
