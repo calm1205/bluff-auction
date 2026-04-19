@@ -1,0 +1,20 @@
+{
+  "name": "bluff-auction",
+  "private": true,
+  "version": "0.1.0",
+  "description": "嘘とハッタリで金を稼ぐ、ブラウザ対応4人対戦カードオークションゲーム",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/client"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:server": "npm run dev --workspace=@bluff-auction/server",
+    "dev:client": "npm run dev --workspace=@bluff-auction/client"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
