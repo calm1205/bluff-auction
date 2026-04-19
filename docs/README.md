@@ -26,15 +26,23 @@ packages/
 docker-compose.yml
 ```
 
+## 初回セットアップ
+
+```bash
+cp .env-template .env
+```
+
+ポート・DB 認証情報を変更したい場合は `.env` を編集。`.env` は `.gitignore` 対象。
+
 ## 起動(Docker、推奨)
 
 ```bash
 docker compose up --build
 ```
 
-- クライアント: http://localhost:8080
-- サーバー: http://localhost:4000
-- Postgres: localhost:5432(user=bluff / pass=bluff / db=bluff)
+- クライアント: `http://localhost:${CLIENT_PORT}`(既定 8080)
+- サーバー: `http://localhost:${SERVER_PORT}`(既定 4000)
+- Postgres: localhost:5432(認証情報は `.env` 参照)
 - マイグレーションはサーバー起動時に自動適用
 
 停止・再起動:
@@ -53,8 +61,10 @@ Postgres をローカル起動してから:
 # 依存インストール
 npm install
 
-# DB 接続設定
-export DATABASE_URL=postgres://bluff:bluff@localhost:5432/bluff
+# DB 接続設定(.env の値を読み込む)
+# 注意: .env の DATABASE_URL はデフォルトで Docker 内部名 `postgres` を指すため
+# ローカル実行時は `localhost` に書き換え
+set -a; source .env; set +a
 
 # サーバー起動(別ターミナル、起動時にマイグレーション適用)
 npm run dev:server
