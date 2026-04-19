@@ -22,23 +22,58 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       PORT: ${SERVER_PORT}
-      NODE_ENV: production
+      NODE_ENV: development
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+    develop:
+      watch:
+        - action: sync
+          path: ./packages/server/src
+          target: /app/packages/server/src
+        - action: sync
+          path: ./packages/shared/src
+          target: /app/packages/shared/src
+        - action: rebuild
+          path: ./packages/server/package.json
+        - action: rebuild
+          path: ./packages/shared/package.json
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./package-lock.json
 
   client:
     build:
       context: .
       dockerfile: packages/client/Dockerfile
-      args:
-        VITE_SERVER_URL: ${VITE_SERVER_URL}
+    environment:
+      VITE_SERVER_URL: ${VITE_SERVER_URL}
     ports:
-      - "${CLIENT_PORT}:80"
+      - "${CLIENT_PORT}:5173"
     depends_on:
       - server
+    develop:
+      watch:
+        - action: sync
+          path: ./packages/client/src
+          target: /app/packages/client/src
+        - action: sync
+          path: ./packages/client/index.html
+          target: /app/packages/client/index.html
+        - action: sync
+          path: ./packages/shared/src
+          target: /app/packages/shared/src
+        - action: rebuild
+          path: ./packages/client/package.json
+        - action: rebuild
+          path: ./packages/shared/package.json
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./package-lock.json
 
 volumes:
   postgres_data:

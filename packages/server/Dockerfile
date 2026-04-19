@@ -16,4 +16,4 @@ COPY packages/shared packages/shared
 COPY packages/server packages/server
 
 EXPOSE 4000
-CMD ["npm", "run", "start", "--workspace=@bluff-auction/server"]
+CMD ["npm", "run", "dev", "--workspace=@bluff-auction/server"]

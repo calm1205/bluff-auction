@@ -34,13 +34,18 @@ cp .env-template .env
 
 ポート・DB 認証情報を変更したい場合は `.env` を編集。`.env` は `.gitignore` 対象。
 
-## 起動(Docker、推奨)
+## 起動(Docker watch モード、推奨)
 
 ```bash
-docker compose up --build
+docker compose watch
 ```
 
-- クライアント: `http://localhost:${CLIENT_PORT}`(既定 8080)
+- 初回は build → 起動 → ソース変更監視まで自動
+- ソース編集で自動反映
+  - `packages/server/src` 変更: コンテナへ sync → tsx watch が再起動
+  - `packages/client/src` 変更: コンテナへ sync → Vite HMR
+  - `package.json` / `package-lock.json` 変更: イメージを rebuild
+- クライアント: `http://localhost:${CLIENT_PORT}`(既定 5173)
 - サーバー: `http://localhost:${SERVER_PORT}`(既定 4000)
 - Postgres: localhost:5432(認証情報は `.env` 参照)
 - マイグレーションはサーバー起動時に自動適用
@@ -100,7 +105,5 @@ npm run format:check
 ## プレイ方法
 
 - 4人のプレイヤーでローカル動作
-- 各自が別タブ/別ブラウザでアクセス
-  - Docker 経由: `http://localhost:8080`
-  - ローカル開発: `http://localhost:5173`
+- 各自が別タブ/別ブラウザで `http://localhost:5173` にアクセス
 - ロビーで名前を入力 → 4人揃ったらゲーム開始

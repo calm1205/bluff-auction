@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build
+FROM node:22-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -12,12 +12,5 @@ COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY packages/client packages/client
 
-ARG VITE_SERVER_URL=http://localhost:4000
-ENV VITE_SERVER_URL=$VITE_SERVER_URL
-
-RUN npm run build --workspace=@bluff-auction/client
-
-FROM nginx:alpine
-COPY --from=build /app/packages/client/dist /usr/share/nginx/html
-COPY packages/client/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--workspace=@bluff-auction/client"]
