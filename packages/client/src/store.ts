@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Brand, GameView, PlayerId } from '@bluff-auction/shared';
+import { create } from "zustand";
+import type { Brand, GameView, PlayerId } from "@bluff-auction/shared";
 
 type RevealedCard = { brand: Brand };
 

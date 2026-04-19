@@ -30,10 +30,25 @@ packages/
 npm install
 
 # サーバー起動(別ターミナル)
-npm run dev --workspace=server
+npm run dev:server
 
 # クライアント起動(別ターミナル)
-npm run dev --workspace=client
+npm run dev:client
+```
+
+### コード品質
+
+```bash
+# 型チェック
+npm run typecheck
+
+# リント(oxlint)
+npm run lint
+npm run lint:fix
+
+# フォーマット(oxfmt)
+npm run format
+npm run format:check
 ```
 
 ## プレイ方法

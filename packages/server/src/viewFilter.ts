@@ -5,9 +5,9 @@ import type {
   PublicAuctionView,
   PublicPlayerView,
   SelfPlayerView,
-} from '@bluff-auction/shared';
+} from "@bluff-auction/shared";
 
-function toPublicPlayer(p: GameState['players'][number]): PublicPlayerView {
+function toPublicPlayer(p: GameState["players"][number]): PublicPlayerView {
   return {
     id: p.id,
     name: p.name,
@@ -19,7 +19,7 @@ function toPublicPlayer(p: GameState['players'][number]): PublicPlayerView {
   };
 }
 
-function toSelfPlayer(p: GameState['players'][number]): SelfPlayerView {
+function toSelfPlayer(p: GameState["players"][number]): SelfPlayerView {
   return {
     ...toPublicPlayer(p),
     brand: p.brand,
@@ -28,7 +28,7 @@ function toSelfPlayer(p: GameState['players'][number]): SelfPlayerView {
   };
 }
 
-function toPublicAuction(a: GameState['currentAuction']): PublicAuctionView | null {
+function toPublicAuction(a: GameState["currentAuction"]): PublicAuctionView | null {
   if (!a) return null;
   return {
     sellerId: a.sellerId,
