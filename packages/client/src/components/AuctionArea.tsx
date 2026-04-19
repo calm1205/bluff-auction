@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { socket } from '../socket.js';
-import { useStore } from '../store.js';
-import { BRANDS, BRAND_LABELS, type Brand } from '@bluff-auction/shared';
+import { useState } from "react";
+import { socket } from "../socket.js";
+import { useStore } from "../store.js";
+import { BRANDS, BRAND_LABELS, type Brand } from "@bluff-auction/shared";
 
 export function AuctionArea() {
   const view = useStore((s) => s.view);
@@ -9,11 +9,11 @@ export function AuctionArea() {
 
   const currentSellerId = view.turnOrder[view.turnIndex];
   const amSeller = view.self.id === currentSellerId;
-  const inListing = view.phase === 'listing';
-  const inBidding = view.phase === 'bidding';
+  const inListing = view.phase === "listing";
+  const inBidding = view.phase === "bidding";
 
   return (
-    <section style={{ marginTop: 16, border: '2px solid #333', padding: 16 }}>
+    <section style={{ marginTop: 16, border: "2px solid #333", padding: 16 }}>
       <h3>競り場 (phase: {view.phase})</h3>
 
       {inListing && amSeller && <ListingForm />}
@@ -29,10 +29,8 @@ export function AuctionArea() {
         </>
       )}
 
-      {view.phase === 'ended' && (
-        <div style={{ fontSize: 24, color: 'green' }}>
-          ゲーム終了! 勝者: {view.winnerId}
-        </div>
+      {view.phase === "ended" && (
+        <div style={{ fontSize: 24, color: "green" }}>ゲーム終了! 勝者: {view.winnerId}</div>
       )}
     </section>
   );
@@ -41,7 +39,7 @@ export function AuctionArea() {
 function ListingForm() {
   const view = useStore((s) => s.view)!;
   const self = view.self!;
-  const [cardId, setCardId] = useState(self.hand[0]?.id ?? '');
+  const [cardId, setCardId] = useState(self.hand[0]?.id ?? "");
   const [declaredBrand, setDeclaredBrand] = useState<Brand>(self.brand);
   const [startingBid, setStartingBid] = useState(25);
 
@@ -50,16 +48,16 @@ function ListingForm() {
 
   const submit = () => {
     if (isFake && fakeRemaining <= 0) {
-      alert('フェイク回数の上限に到達');
+      alert("フェイク回数の上限に到達");
       return;
     }
-    socket.emit('list-card', { cardId, declaredBrand, startingBid }, (res) => {
+    socket.emit("list-card", { cardId, declaredBrand, startingBid }, (res) => {
       if (!res.ok) alert(`出品失敗: ${res.message}`);
     });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <label>
         出品カード:
         <select value={cardId} onChange={(e) => setCardId(e.target.value)}>
@@ -72,14 +70,11 @@ function ListingForm() {
       </label>
       <label>
         宣言ブランド:
-        <select
-          value={declaredBrand}
-          onChange={(e) => setDeclaredBrand(e.target.value as Brand)}
-        >
+        <select value={declaredBrand} onChange={(e) => setDeclaredBrand(e.target.value as Brand)}>
           {BRANDS.map((b) => (
             <option key={b} value={b}>
               {BRAND_LABELS[b]}
-              {b !== self.brand ? ' (フェイク)' : ''}
+              {b !== self.brand ? " (フェイク)" : ""}
             </option>
           ))}
         </select>
@@ -106,18 +101,19 @@ function AuctionStatus() {
   const view = useStore((s) => s.view)!;
   const a = view.currentAuction!;
   const allPlayers = [...view.others, ...(view.self ? [view.self] : [])];
-  const sellerName =
-    allPlayers.find((p) => p.id === a.sellerId)?.name ?? '?';
+  const sellerName = allPlayers.find((p) => p.id === a.sellerId)?.name ?? "?";
   const leaderName = a.highestBidderId
-    ? allPlayers.find((p) => p.id === a.highestBidderId)?.name ?? '?'
-    : '(なし)';
+    ? (allPlayers.find((p) => p.id === a.highestBidderId)?.name ?? "?")
+    : "(なし)";
 
   return (
     <div style={{ marginBottom: 12 }}>
       <div>出品者: {sellerName}</div>
       <div>宣言: {BRAND_LABELS[a.declaredBrand]}</div>
       <div>開始額: ${a.startingBid}</div>
-      <div>現在最高: ${a.currentBid}({leaderName})</div>
+      <div>
+        現在最高: ${a.currentBid}({leaderName})
+      </div>
       <div>パス: {a.passedPlayerIds.length}人</div>
     </div>
   );
@@ -131,18 +127,18 @@ function BiddingForm() {
   const [amount, setAmount] = useState(minBid);
 
   const submitBid = () => {
-    socket.emit('bid', { amount }, (res) => {
+    socket.emit("bid", { amount }, (res) => {
       if (!res.ok) alert(`入札失敗: ${res.message}`);
     });
   };
   const submitPass = () => {
-    socket.emit('pass', (res) => {
+    socket.emit("pass", (res) => {
       if (!res.ok) alert(`パス失敗: ${res.message}`);
     });
   };
 
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
       <input
         type="number"
         min={minBid}

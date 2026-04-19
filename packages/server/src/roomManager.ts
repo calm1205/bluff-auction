@@ -1,5 +1,5 @@
-import type { GameState } from '@bluff-auction/shared';
-import { createInitialState } from './gameEngine.js';
+import type { GameState } from "@bluff-auction/shared";
+import { createInitialState } from "./gameEngine.js";
 
 // プロトタイプでは単一ルームで運用
 export class RoomManager {

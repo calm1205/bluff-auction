@@ -1,7 +1,7 @@
-import { useStore } from '../store.js';
-import { BRAND_LABELS } from '@bluff-auction/shared';
-import { OpponentList } from './OpponentList.js';
-import { AuctionArea } from './AuctionArea.js';
+import { useStore } from "../store.js";
+import { BRAND_LABELS } from "@bluff-auction/shared";
+import { OpponentList } from "./OpponentList.js";
+import { AuctionArea } from "./AuctionArea.js";
 
 export function GameBoard() {
   const view = useStore((s) => s.view);
@@ -17,7 +17,7 @@ export function GameBoard() {
 
       <AuctionArea />
 
-      <section style={{ marginTop: 24, border: '1px solid #ccc', padding: 16 }}>
+      <section style={{ marginTop: 24, border: "1px solid #ccc", padding: 16 }}>
         <h3>
           自分: {view.self.name} (ブランド: {BRAND_LABELS[view.self.brand]})
         </h3>
@@ -49,8 +49,8 @@ export function GameBoard() {
           style={{
             marginTop: 16,
             padding: 12,
-            background: '#fffae0',
-            border: '1px solid #d4c500',
+            background: "#fffae0",
+            border: "1px solid #d4c500",
           }}
         >
           最新落札カードの実種別: <strong>{BRAND_LABELS[lastRevealed.brand]}</strong>
