@@ -2,7 +2,11 @@ import type { BRANDS } from "./constants.js";
 
 export type Brand = (typeof BRANDS)[number];
 
-export type PlayerId = string;
+// UUID として生成され localStorage に保存される永続識別子
+export type UserId = string;
+
+// PlayerId は UserId のエイリアス(ゲーム文脈での呼び名)
+export type PlayerId = UserId;
 
 export type Card = {
   id: string;
@@ -20,6 +24,7 @@ export type Player = {
   cash: number;
   fakesUsed: number;
   passed: boolean;
+  online: boolean;
 };
 
 export type Auction = {
@@ -49,6 +54,7 @@ export type PublicPlayerView = {
   handCount: number;
   collectionCount: number;
   passed: boolean;
+  online: boolean;
 };
 
 export type SelfPlayerView = PublicPlayerView & {

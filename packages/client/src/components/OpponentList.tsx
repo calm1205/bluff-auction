@@ -31,7 +31,10 @@ export function OpponentList() {
               <td style={cellStyle}>{p.collectionCount}</td>
               <td style={cellStyle}>${p.cash}</td>
               <td style={cellStyle}>{p.fakesUsed}/2</td>
-              <td style={cellStyle}>{p.passed ? "パス済み" : "-"}</td>
+              <td style={cellStyle}>
+                {!p.online && <span style={{ color: "#999" }}>オフライン</span>}
+                {p.online && (p.passed ? "パス済み" : "-")}
+              </td>
             </tr>
           ))}
         </tbody>
