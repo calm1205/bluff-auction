@@ -11,7 +11,10 @@
 ## 技術スタック
 
 - Frontend: React + Vite + TypeScript
-- Backend: Node.js + Socket.IO + TypeScript
+- Backend: Node.js + Fastify + Socket.IO + TypeScript
+  - ルーム管理(参加/離脱/開始): REST
+  - ゲーム進行(出品/入札/パス): Socket.IO
+- API ドキュメント: OpenAPI + Swagger UI(`http://localhost:4000/docs`)
 - 永続化: PostgreSQL(Drizzle ORM)
 - Monorepo: npm workspaces
 - 配布: Docker + docker-compose
