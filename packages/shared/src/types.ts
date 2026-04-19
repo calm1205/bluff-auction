@@ -1,4 +1,4 @@
-import type { BRANDS } from './constants.js';
+import type { BRANDS } from "./constants.js";
 
 export type Brand = (typeof BRANDS)[number];
 
@@ -9,7 +9,7 @@ export type Card = {
   brand: Brand;
 };
 
-export type Phase = 'lobby' | 'listing' | 'bidding' | 'transaction' | 'ended';
+export type Phase = "lobby" | "listing" | "bidding" | "transaction" | "ended";
 
 export type Player = {
   id: PlayerId;

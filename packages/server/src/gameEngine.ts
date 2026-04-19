@@ -8,24 +8,22 @@ import {
   distributeUnsoldPenalty,
   hasFullSet,
   nextTurnIndex,
-  type Auction,
   type Brand,
-  type Card,
   type GameState,
   type Player,
   type PlayerId,
-} from '@bluff-auction/shared';
+} from "@bluff-auction/shared";
 
 export type EngineEvent =
-  | { type: 'view-update' }
-  | { type: 'auction-revealed'; to: PlayerId; brand: Brand }
+  | { type: "view-update" }
+  | { type: "auction-revealed"; to: PlayerId; brand: Brand }
   | {
-      type: 'unsold-penalty';
+      type: "unsold-penalty";
       sellerId: PlayerId;
       amount: number;
       recipientIds: PlayerId[];
     }
-  | { type: 'game-ended'; winnerId: PlayerId };
+  | { type: "game-ended"; winnerId: PlayerId };
 
 export type EngineResult =
   | { ok: true; events: EngineEvent[] }
@@ -52,7 +50,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export function createInitialState(): GameState {
   return {
-    phase: 'lobby',
+    phase: "lobby",
     turnIndex: 0,
     players: [],
     currentAuction: null,
@@ -62,9 +60,9 @@ export function createInitialState(): GameState {
 }
 
 export function addPlayer(state: GameState, id: PlayerId, name: string): EngineResult {
-  if (state.phase !== 'lobby') return err('not-lobby', 'ゲーム進行中');
-  if (state.players.some((p) => p.id === id)) return err('duplicate', '参加済み');
-  if (state.players.length >= NUM_PLAYERS) return err('full', '定員到達');
+  if (state.phase !== "lobby") return err("not-lobby", "ゲーム進行中");
+  if (state.players.some((p) => p.id === id)) return err("duplicate", "参加済み");
+  if (state.players.length >= NUM_PLAYERS) return err("full", "定員到達");
 
   state.players.push({
     id,
@@ -76,18 +74,18 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
     fakesUsed: 0,
     passed: false,
   });
-  return ok([{ type: 'view-update' }]);
+  return ok([{ type: "view-update" }]);
 }
 
 export function removePlayer(state: GameState, id: PlayerId): EngineResult {
-  if (state.phase !== 'lobby') return err('not-lobby', 'ゲーム進行中は離脱不可');
+  if (state.phase !== "lobby") return err("not-lobby", "ゲーム進行中は離脱不可");
   state.players = state.players.filter((p) => p.id !== id);
-  return ok([{ type: 'view-update' }]);
+  return ok([{ type: "view-update" }]);
 }
 
 export function startGame(state: GameState): EngineResult {
-  if (state.phase !== 'lobby') return err('not-lobby', 'ロビー以外で開始不可');
-  if (state.players.length !== NUM_PLAYERS) return err('not-ready', '4人揃っていない');
+  if (state.phase !== "lobby") return err("not-lobby", "ロビー以外で開始不可");
+  if (state.players.length !== NUM_PLAYERS) return err("not-ready", "4人揃っていない");
 
   const shuffledBrands = shuffle([...BRANDS]);
   const decks = buildInitialDeck(shuffledBrands, CARDS_PER_BRAND);
@@ -104,11 +102,11 @@ export function startGame(state: GameState): EngineResult {
 
   state.turnOrder = shuffle(state.players.map((p) => p.id));
   state.turnIndex = 0;
-  state.phase = 'listing';
+  state.phase = "listing";
   state.currentAuction = null;
   state.winnerId = null;
 
-  return ok([{ type: 'view-update' }]);
+  return ok([{ type: "view-update" }]);
 }
 
 function currentSellerId(state: GameState): PlayerId {
@@ -124,24 +122,23 @@ export function listCard(
   senderId: PlayerId,
   cardId: string,
   declaredBrand: Brand,
-  startingBid: number
+  startingBid: number,
 ): EngineResult {
-  if (state.phase !== 'listing') return err('wrong-phase', '出品フェーズではない');
-  if (currentSellerId(state) !== senderId) return err('not-your-turn', '出品権がない');
-  if (!BRANDS.includes(declaredBrand)) return err('bad-brand', '不明なブランド');
+  if (state.phase !== "listing") return err("wrong-phase", "出品フェーズではない");
+  if (currentSellerId(state) !== senderId) return err("not-your-turn", "出品権がない");
+  if (!BRANDS.includes(declaredBrand)) return err("bad-brand", "不明なブランド");
 
   const seller = getPlayer(state, senderId);
-  if (!seller) return err('no-player', 'プレイヤー不在');
-  if (startingBid < 0 || startingBid > seller.cash)
-    return err('bad-bid', '初期落札額が不正');
+  if (!seller) return err("no-player", "プレイヤー不在");
+  if (startingBid < 0 || startingBid > seller.cash) return err("bad-bid", "初期落札額が不正");
 
   const cardIndex = seller.hand.findIndex((c) => c.id === cardId);
-  if (cardIndex < 0) return err('no-card', '手札にない');
+  if (cardIndex < 0) return err("no-card", "手札にない");
   const card = seller.hand[cardIndex]!;
 
   const isFake = declaredBrand !== seller.brand;
   if (isFake && seller.fakesUsed >= MAX_FAKES_PER_PLAYER)
-    return err('fake-limit', 'フェイク回数上限');
+    return err("fake-limit", "フェイク回数上限");
 
   seller.hand.splice(cardIndex, 1);
   state.players.forEach((p) => {
@@ -156,50 +153,45 @@ export function listCard(
     highestBidderId: null,
     passedPlayerIds: [],
   };
-  state.phase = 'bidding';
-  return ok([{ type: 'view-update' }]);
+  state.phase = "bidding";
+  return ok([{ type: "view-update" }]);
 }
 
 export function bid(state: GameState, senderId: PlayerId, amount: number): EngineResult {
-  if (state.phase !== 'bidding') return err('wrong-phase', '入札フェーズではない');
+  if (state.phase !== "bidding") return err("wrong-phase", "入札フェーズではない");
   const auction = state.currentAuction;
-  if (!auction) return err('no-auction', '競り情報なし');
-  if (auction.sellerId === senderId) return err('seller-cant-bid', '出品者は入札不可');
-  if (auction.passedPlayerIds.includes(senderId)) return err('already-passed', 'パス済み');
+  if (!auction) return err("no-auction", "競り情報なし");
+  if (auction.sellerId === senderId) return err("seller-cant-bid", "出品者は入札不可");
+  if (auction.passedPlayerIds.includes(senderId)) return err("already-passed", "パス済み");
   const bidder = getPlayer(state, senderId);
-  if (!bidder) return err('no-player', 'プレイヤー不在');
+  if (!bidder) return err("no-player", "プレイヤー不在");
 
-  const minAmount =
-    auction.highestBidderId === null ? auction.startingBid : auction.currentBid + 1;
-  if (amount < minAmount) return err('too-low', '最低落札額未満');
-  if (amount > bidder.cash) return err('no-cash', '所持金不足');
+  const minAmount = auction.highestBidderId === null ? auction.startingBid : auction.currentBid + 1;
+  if (amount < minAmount) return err("too-low", "最低落札額未満");
+  if (amount > bidder.cash) return err("no-cash", "所持金不足");
 
   auction.currentBid = amount;
   auction.highestBidderId = senderId;
-  return ok([{ type: 'view-update' }]);
+  return ok([{ type: "view-update" }]);
 }
 
 export function pass(state: GameState, senderId: PlayerId): EngineResult {
-  if (state.phase !== 'bidding') return err('wrong-phase', '入札フェーズではない');
+  if (state.phase !== "bidding") return err("wrong-phase", "入札フェーズではない");
   const auction = state.currentAuction;
-  if (!auction) return err('no-auction', '競り情報なし');
-  if (auction.sellerId === senderId) return err('seller-cant-pass', '出品者はパス不可');
-  if (auction.passedPlayerIds.includes(senderId)) return err('already-passed', 'パス済み');
+  if (!auction) return err("no-auction", "競り情報なし");
+  if (auction.sellerId === senderId) return err("seller-cant-pass", "出品者はパス不可");
+  if (auction.passedPlayerIds.includes(senderId)) return err("already-passed", "パス済み");
 
   auction.passedPlayerIds.push(senderId);
 
-  const nonSellerIds = state.players
-    .map((p) => p.id)
-    .filter((id) => id !== auction.sellerId);
-  const remainingBidders = nonSellerIds.filter(
-    (id) => !auction.passedPlayerIds.includes(id)
-  );
+  const nonSellerIds = state.players.map((p) => p.id).filter((id) => id !== auction.sellerId);
+  const remainingBidders = nonSellerIds.filter((id) => !auction.passedPlayerIds.includes(id));
 
   const shouldEnd =
     remainingBidders.length === 0 ||
     (auction.highestBidderId !== null && remainingBidders.length === 0);
 
-  if (!shouldEnd) return ok([{ type: 'view-update' }]);
+  if (!shouldEnd) return ok([{ type: "view-update" }]);
 
   return settleAuction(state);
 }
@@ -222,7 +214,7 @@ function settleAuction(state: GameState): EngineResult {
     seller.hand.push(auction.card);
 
     events.push({
-      type: 'unsold-penalty',
+      type: "unsold-penalty",
       sellerId: seller.id,
       amount: totalPaid,
       recipientIds: recipients.map((r) => r.id),
@@ -239,7 +231,7 @@ function settleAuction(state: GameState): EngineResult {
     }
 
     events.push({
-      type: 'auction-revealed',
+      type: "auction-revealed",
       to: winner.id,
       brand: auction.card.brand,
     });
@@ -247,17 +239,17 @@ function settleAuction(state: GameState): EngineResult {
     // victory check
     if (hasFullSet(winner)) {
       state.winnerId = winner.id;
-      state.phase = 'ended';
+      state.phase = "ended";
       state.currentAuction = null;
-      events.push({ type: 'view-update' });
-      events.push({ type: 'game-ended', winnerId: winner.id });
+      events.push({ type: "view-update" });
+      events.push({ type: "game-ended", winnerId: winner.id });
       return ok(events);
     }
   }
 
   state.currentAuction = null;
   state.turnIndex = nextTurnIndex(state.turnIndex, state.turnOrder.length);
-  state.phase = 'listing';
-  events.push({ type: 'view-update' });
+  state.phase = "listing";
+  events.push({ type: "view-update" });
   return ok(events);
 }

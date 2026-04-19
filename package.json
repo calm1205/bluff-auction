@@ -12,9 +12,15 @@
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "dev:server": "npm run dev --workspace=@bluff-auction/server",
-    "dev:client": "npm run dev --workspace=@bluff-auction/client"
+    "dev:client": "npm run dev --workspace=@bluff-auction/client",
+    "lint": "oxlint packages",
+    "lint:fix": "oxlint --fix packages",
+    "format": "oxfmt packages",
+    "format:check": "oxfmt --check packages"
   },
   "devDependencies": {
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "typescript": "^5.4.0"
   }
 }

@@ -1,4 +1,4 @@
-import { useStore } from '../store.js';
+import { useStore } from "../store.js";
 
 export function OpponentList() {
   const view = useStore((s) => s.view);
@@ -9,7 +9,7 @@ export function OpponentList() {
   return (
     <section style={{ marginTop: 16 }}>
       <h3>他プレイヤー</h3>
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+      <table style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
             <th style={cellStyle}>名前</th>
@@ -25,13 +25,13 @@ export function OpponentList() {
             <tr key={p.id}>
               <td style={cellStyle}>
                 {p.name}
-                {p.id === currentSellerId && ' (出品中)'}
+                {p.id === currentSellerId && " (出品中)"}
               </td>
               <td style={cellStyle}>{p.handCount}</td>
               <td style={cellStyle}>{p.collectionCount}</td>
               <td style={cellStyle}>${p.cash}</td>
               <td style={cellStyle}>{p.fakesUsed}/2</td>
-              <td style={cellStyle}>{p.passed ? 'パス済み' : '-'}</td>
+              <td style={cellStyle}>{p.passed ? "パス済み" : "-"}</td>
             </tr>
           ))}
         </tbody>
@@ -41,7 +41,7 @@ export function OpponentList() {
 }
 
 const cellStyle: React.CSSProperties = {
-  border: '1px solid #ccc',
-  padding: '6px 10px',
-  textAlign: 'left',
+  border: "1px solid #ccc",
+  padding: "6px 10px",
+  textAlign: "left",
 };
