@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { socket } from "../socket.js";
 import { useStore } from "../store.js";
 import { NUM_PLAYERS } from "@bluff-auction/shared";
+import * as api from "../api.js";
 
 export function Lobby() {
   const view = useStore((s) => s.view);
@@ -10,18 +10,22 @@ export function Lobby() {
 
   const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0;
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!name.trim()) return;
-    socket.emit("join-room", { name }, (res) => {
-      if (res.ok) setJoined(true);
-      else alert(`参加失敗: ${res.message}`);
-    });
+    try {
+      await api.joinRoom(name);
+      setJoined(true);
+    } catch (e) {
+      alert(`参加失敗: ${(e as Error).message}`);
+    }
   };
 
-  const handleStart = () => {
-    socket.emit("start-game", (res) => {
-      if (!res.ok) alert(`開始失敗: ${res.message}`);
-    });
+  const handleStart = async () => {
+    try {
+      await api.startGame();
+    } catch (e) {
+      alert(`開始失敗: ${(e as Error).message}`);
+    }
   };
 
   return (
