@@ -16,6 +16,7 @@ function toPublicPlayer(p: GameState["players"][number]): PublicPlayerView {
     handCount: p.hand.length,
     collectionCount: p.collection.length,
     passed: p.passed,
+    online: p.online,
   };
 }
 

@@ -60,8 +60,18 @@ export function createInitialState(): GameState {
 }
 
 export function addPlayer(state: GameState, id: PlayerId, name: string): EngineResult {
-  if (state.phase !== "lobby") return err("not-lobby", "ゲーム進行中");
-  if (state.players.some((p) => p.id === id)) return err("duplicate", "参加済み");
+  const existing = state.players.find((p) => p.id === id);
+
+  // 既存プレイヤーの再接続
+  if (existing) {
+    existing.online = true;
+    // 名前は最新のものに更新(任意)
+    if (name.trim()) existing.name = name;
+    return ok([{ type: "view-update" }]);
+  }
+
+  // 新規参加はロビー時のみ
+  if (state.phase !== "lobby") return err("not-lobby", "ゲーム進行中は新規参加不可");
   if (state.players.length >= NUM_PLAYERS) return err("full", "定員到達");
 
   state.players.push({
@@ -73,7 +83,23 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
     cash: 0,
     fakesUsed: 0,
     passed: false,
+    online: true,
   });
+  return ok([{ type: "view-update" }]);
+}
+
+export function markOffline(state: GameState, id: PlayerId): EngineResult {
+  const player = state.players.find((p) => p.id === id);
+  if (!player) return ok([]);
+
+  // ロビー中は即離脱(他の人が参加できるように)
+  if (state.phase === "lobby") {
+    state.players = state.players.filter((p) => p.id !== id);
+    return ok([{ type: "view-update" }]);
+  }
+
+  // ゲーム中はオフライン扱いで席を保持
+  player.online = false;
   return ok([{ type: "view-update" }]);
 }
 
@@ -98,6 +124,7 @@ export function startGame(state: GameState): EngineResult {
     cash: INITIAL_CASH,
     fakesUsed: 0,
     passed: false,
+    online: p.online,
   }));
 
   state.turnOrder = shuffle(state.players.map((p) => p.id));
