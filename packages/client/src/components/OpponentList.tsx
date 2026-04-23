@@ -14,7 +14,6 @@ export function OpponentList() {
           <tr>
             <th style={cellStyle}>名前</th>
             <th style={cellStyle}>手札</th>
-            <th style={cellStyle}>コレクション</th>
             <th style={cellStyle}>所持金</th>
             <th style={cellStyle}>フェイク使用</th>
             <th style={cellStyle}>状態</th>
@@ -28,7 +27,6 @@ export function OpponentList() {
                 {p.id === currentSellerId && " (出品中)"}
               </td>
               <td style={cellStyle}>{p.handCount}</td>
-              <td style={cellStyle}>{p.collectionCount}</td>
               <td style={cellStyle}>${p.cash}</td>
               <td style={cellStyle}>{p.fakesUsed}/2</td>
               <td style={cellStyle}>

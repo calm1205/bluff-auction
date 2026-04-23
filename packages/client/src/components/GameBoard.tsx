@@ -34,14 +34,6 @@ export function GameBoard() {
             ))}
           </ul>
         </div>
-        <div>
-          <strong>コレクション:</strong>
-          <ul>
-            {view.self.collection.map((c) => (
-              <li key={c.id}>{BRAND_LABELS[c.brand]}</li>
-            ))}
-          </ul>
-        </div>
       </section>
 
       {lastRevealed && (

@@ -79,7 +79,6 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
     name,
     brand: BRANDS[0]!,
     hand: [],
-    collection: [],
     cash: 0,
     fakesUsed: 0,
     passed: false,
@@ -120,7 +119,6 @@ export function startGame(state: GameState): EngineResult {
     ...p,
     brand: shuffledBrands[i]!,
     hand: decks[i]!,
-    collection: [],
     cash: INITIAL_CASH,
     fakesUsed: 0,
     passed: false,
@@ -250,7 +248,7 @@ function settleAuction(state: GameState): EngineResult {
     const winner = getPlayer(state, auction.highestBidderId)!;
     winner.cash -= auction.currentBid;
     seller.cash += auction.currentBid;
-    winner.collection.push(auction.card);
+    winner.hand.push(auction.card);
 
     // fake consumption
     if (auction.declaredBrand !== seller.brand) {
