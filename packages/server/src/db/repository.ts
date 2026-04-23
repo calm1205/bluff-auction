@@ -42,9 +42,6 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     const hand: Card[] = cardRows
       .filter((c) => c.holderId === p.userId && c.location === "hand")
       .map((c) => ({ id: c.id, brand: c.brand as Brand }));
-    const collection: Card[] = cardRows
-      .filter((c) => c.holderId === p.userId && c.location === "collection")
-      .map((c) => ({ id: c.id, brand: c.brand as Brand }));
 
     // lobby 時点で brand が null の場合、型上は Brand を要求されるが、
     // ゲーム開始前には参照されないためフォールバック値を入れる
@@ -55,7 +52,6 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
       name: p.name,
       brand,
       hand,
-      collection,
       cash: p.cash,
       fakesUsed: p.fakesUsed,
       passed: p.passed,
@@ -145,15 +141,6 @@ export async function saveRoomState(
         brand: c.brand,
         holderId: p.id,
         location: "hand",
-      });
-    }
-    for (const c of p.collection) {
-      cardRows.push({
-        id: c.id,
-        roomId,
-        brand: c.brand,
-        holderId: p.id,
-        location: "collection",
       });
     }
   }

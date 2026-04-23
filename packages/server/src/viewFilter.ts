@@ -14,7 +14,6 @@ function toPublicPlayer(p: GameState["players"][number]): PublicPlayerView {
     cash: p.cash,
     fakesUsed: p.fakesUsed,
     handCount: p.hand.length,
-    collectionCount: p.collection.length,
     passed: p.passed,
     online: p.online,
   };
@@ -25,7 +24,6 @@ function toSelfPlayer(p: GameState["players"][number]): SelfPlayerView {
     ...toPublicPlayer(p),
     brand: p.brand,
     hand: p.hand,
-    collection: p.collection,
   };
 }
 

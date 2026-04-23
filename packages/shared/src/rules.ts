@@ -1,17 +1,15 @@
 import type { Brand, Card, Player } from "./types.js";
 import { BRANDS } from "./constants.js";
 
-export function hasFullSet(player: Pick<Player, "hand" | "collection">): boolean {
+export function hasFullSet(player: Pick<Player, "hand">): boolean {
   const brands = new Set<Brand>();
   for (const c of player.hand) brands.add(c.brand);
-  for (const c of player.collection) brands.add(c.brand);
   return brands.size === BRANDS.length;
 }
 
-export function ownedBrands(player: Pick<Player, "hand" | "collection">): Set<Brand> {
+export function ownedBrands(player: Pick<Player, "hand">): Set<Brand> {
   const brands = new Set<Brand>();
   for (const c of player.hand) brands.add(c.brand);
-  for (const c of player.collection) brands.add(c.brand);
   return brands;
 }
 

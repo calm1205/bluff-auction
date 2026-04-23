@@ -20,7 +20,6 @@ export type Player = {
   name: string;
   brand: Brand;
   hand: Card[];
-  collection: Card[];
   cash: number;
   fakesUsed: number;
   passed: boolean;
@@ -52,7 +51,6 @@ export type PublicPlayerView = {
   cash: number;
   fakesUsed: number;
   handCount: number;
-  collectionCount: number;
   passed: boolean;
   online: boolean;
 };
@@ -60,7 +58,6 @@ export type PublicPlayerView = {
 export type SelfPlayerView = PublicPlayerView & {
   brand: Brand;
   hand: Card[];
-  collection: Card[];
 };
 
 export type PublicAuctionView = {
