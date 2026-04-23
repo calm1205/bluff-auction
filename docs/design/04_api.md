@@ -48,7 +48,8 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `too-low` | bid | 最低落札額未満 |
 | `no-cash` | bid | 所持金不足 |
 | `unauthorized` | REST | `X-User-Id` 欠落 |
-| `not-found` | GET /rooms/:id | ルーム未存在 |
+| `not-found` | GET /rooms/:id, GET /users/:id | ルーム/ユーザー未存在 |
+| `user-exists` | POST /users | `id` 既登録 |
 | `db-error` | 共通 | DB 例外 |
 
 ### Server → Client
@@ -65,16 +66,38 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ヘッダ `X-User-Id` は localStorage の UUID。参加・離脱・開始系で必須(401 を返す)。
 
+### POST /users
+
+- **概要**: ユーザー登録。ユーザー名登録画面の「開始」ボタンから呼び出し
+  - クライアントが生成した UUID + 入力名をサーバー側で永続化、成功後に localStorage へ UUID 保存
+- **Request**
+  - Body: `{ id: string; name: string }`(`id` は UUID、`name` は1文字以上)
+- **Response**
+  - 201: 成功
+  - 409: `{ code: "user-exists", message }` — `id` 既登録
+  - 400: バリデーションエラー
+
+### GET /users/:id
+
+- **概要**: ユーザー存在確認 + 表示名取得。アプリ起動時に localStorage の UUID がサーバー側に存在するか検証し、返却された `name` をメモリ保持
+  - 404 が返った場合、クライアントは localStorage(`bluff-auction.userId`)を削除してユーザー名登録画面へリダイレクト
+- **Request**
+  - Params: `id: string`
+- **Response**
+  - 200: `{ id: string; name: string }`
+  - 404: `{ code: "not-found", message }` — ユーザー未登録
+
 ### POST /rooms
 
-- **概要**: 新規ルーム作成。ロビー画面の「ルーム作成」ボタン、および終了画面の「新ルーム作成(再戦)」から呼び出し
+- **概要**: 新規ルーム作成(ユーザー操作)。ルーム一覧画面の「新規ルーム作成」ボタン、および終了画面の「新ルーム作成(再戦)」から呼び出し
+  - 自動マッチメイキング・自動割当は行わず、必ずユーザーが明示的に作成
   - 1ルーム=1ゲーム設計のため、再戦時も必ず新規作成
 - **Request**: ボディなし
 - **Response (201)**: `{ id: string }` — UUID
 
 ### GET /rooms
 
-- **概要**: ルーム一覧取得。ロビー/マッチメイキング画面で一覧表示時に呼び出し
+- **概要**: ルーム一覧取得。ルーム一覧画面の表示時に呼び出し
 - **Request**: なし
 - **Response (200)**: `Array<{ id: string; phase: string; playerCount: integer }>`
 
@@ -123,9 +146,18 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ## ユーザー管理
 
+### localStorage
+
+| key | value | 用途 |
+|---|---|---|
+| `bluff-auction.userId` | UUID 文字列 | ユーザー識別子 |
+
+- 未保存ならユーザー名登録画面を表示
+- 表示名は localStorage に保存せず、起動時の `GET /users/:id` でサーバーから取得してメモリ(Zustand store)で保持
+
 ### 識別子
 
-- **UserId**: localStorage に保存する UUID(初回アクセス時に生成)
+- **UserId**: `bluff-auction.userId`(UUID)
 - PlayerId は UserId のエイリアス(ゲーム文脈)
 - Socket.IO: `socket.handshake.auth.userId` → `socket.data.userId`
 - REST: `X-User-Id` ヘッダ
@@ -137,5 +169,6 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ### 表示名
 
-- ユーザーが自由入力、重複可
+- サーバー側の `users.name` が正、クライアントはメモリ保持のみ(localStorage 非永続)
+- 自由入力・重複可、ルーム参加時は `POST /rooms/:id/players` のボディへ送信
 - プレイヤー区別は UserId(非表示)で行う

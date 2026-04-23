@@ -1,53 +1,71 @@
-import { useState } from "react";
-import { useStore } from "../store.js";
-import { NUM_PLAYERS } from "@bluff-auction/shared";
-import * as api from "../api.js";
+import { useEffect, useRef, useState } from "react"
+import { useStore } from "../store.js"
+import { NUM_PLAYERS } from "@bluff-auction/shared"
+import { disconnectSocket } from "../socket.js"
+import * as api from "../api.js"
 
 export function Lobby() {
-  const view = useStore((s) => s.view);
-  const [name, setName] = useState("");
-  const [joined, setJoined] = useState(false);
+  const view = useStore((s) => s.view)
+  const roomId = useStore((s) => s.roomId)
+  const userName = useStore((s) => s.userName)
+  const leaveRoom = useStore((s) => s.leaveRoom)
+  const [joining, setJoining] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const attemptedRef = useRef(false)
 
-  const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0;
+  const alreadyJoined = view?.self != null
+  const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0
+  const roomFull = playerCount >= NUM_PLAYERS
 
-  const handleJoin = async () => {
-    if (!name.trim()) return;
-    try {
-      await api.joinRoom(name);
-      setJoined(true);
-    } catch (e) {
-      alert(`参加失敗: ${(e as Error).message}`);
-    }
-  };
+  // view 受信後、自動で参加
+  useEffect(() => {
+    if (!roomId || !view) return
+    if (alreadyJoined || attemptedRef.current) return
+    if (roomFull) return
+    if (!userName) return
+    attemptedRef.current = true
+    setJoining(true)
+    setError(null)
+    api
+      .joinRoom(roomId, userName)
+      .catch((e) => {
+        setError((e as Error).message)
+      })
+      .finally(() => setJoining(false))
+  }, [roomId, view, alreadyJoined, roomFull, userName])
+
+  if (!roomId) return null
 
   const handleStart = async () => {
     try {
-      await api.startGame();
+      await api.startGame(roomId)
     } catch (e) {
-      alert(`開始失敗: ${(e as Error).message}`);
+      alert(`開始失敗: ${(e as Error).message}`)
     }
-  };
+  }
+
+  const handleBack = () => {
+    disconnectSocket()
+    leaveRoom()
+  }
 
   return (
     <div style={{ padding: 24 }}>
       <h1>Bluff Auction</h1>
+      <button type="button" onClick={handleBack} style={{ marginBottom: 12, padding: 6 }}>
+        ← ルーム一覧へ戻る
+      </button>
       <h2>ロビー</h2>
+      <div style={{ fontFamily: "monospace", fontSize: 12, color: "#666", marginBottom: 8 }}>
+        ルーム: {roomId}
+      </div>
 
-      {!joined ? (
-        <div>
-          <input
-            type="text"
-            placeholder="名前"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ padding: 8, fontSize: 16 }}
-          />
-          <button onClick={handleJoin} style={{ marginLeft: 8, padding: 8 }}>
-            参加
-          </button>
+      {!alreadyJoined && (
+        <div style={{ marginBottom: 12 }}>
+          {joining && <span>参加処理中...</span>}
+          {!joining && roomFull && <span style={{ color: "#c33" }}>満員のため参加できません</span>}
+          {!joining && error && <span style={{ color: "#c33" }}>参加失敗: {error}</span>}
         </div>
-      ) : (
-        <div>参加済み: {name}</div>
       )}
 
       <h3>
@@ -60,11 +78,11 @@ export function Lobby() {
         ))}
       </ul>
 
-      {joined && playerCount === NUM_PLAYERS && (
-        <button onClick={handleStart} style={{ padding: 12, fontSize: 16 }}>
+      {alreadyJoined && playerCount === NUM_PLAYERS && (
+        <button type="button" onClick={handleStart} style={{ padding: 12, fontSize: 16 }}>
           ゲーム開始
         </button>
       )}
     </div>
-  );
+  )
 }

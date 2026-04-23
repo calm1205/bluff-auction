@@ -1,21 +1,24 @@
-const STORAGE_KEY = "bluff-auction.userId";
+const USER_ID_KEY = "bluff-auction.userId"
 
-export function getOrCreateUserId(): string {
+export function getStoredUserId(): string | null {
   try {
-    const existing = localStorage.getItem(STORAGE_KEY);
-    if (existing) return existing;
-    const created = crypto.randomUUID();
-    localStorage.setItem(STORAGE_KEY, created);
-    return created;
+    return localStorage.getItem(USER_ID_KEY)
   } catch {
-    // localStorage 不使用環境(プライベートブラウズ等)ではセッション内のみのID
-    return crypto.randomUUID();
+    return null
   }
 }
 
-export function clearUserId(): void {
+export function setStoredUserId(id: string): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(USER_ID_KEY, id)
+  } catch {
+    // noop
+  }
+}
+
+export function clearUserStorage(): void {
+  try {
+    localStorage.removeItem(USER_ID_KEY)
   } catch {
     // noop
   }

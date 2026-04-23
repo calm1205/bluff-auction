@@ -46,10 +46,11 @@ sequenceDiagram
 
 ## 接続ライフサイクル
 
-ルーム参加・離脱は REST、オンライン状態同期は Socket.IO。
+ルーム作成・参加・離脱は REST(ユーザーが手動操作)、オンライン状態同期は Socket.IO。
 
 | イベント | フェーズ | 動作 |
 |---|---|---|
+| ルーム作成 | — | `POST /rooms` で新規ルーム発行、作成者は続けて参加リクエスト(REST) |
 | ルーム参加 | LOBBY | `POST /rooms/:id/players` で addPlayer(REST) |
 | Socket 新規接続 | LOBBY | 既参加なら online=true に戻し、未参加なら観戦のみ |
 | Socket 再接続 | 進行中 | 席に復帰、online=true、直後に `view-update` を1回受信 |

@@ -4,7 +4,7 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> LOBBY: POST /rooms で新規作成
+    [*] --> LOBBY: ユーザーが POST /rooms で手動作成
     LOBBY --> LISTING: start-game (4人揃い)
     LISTING --> BIDDING: list-card
     BIDDING --> TRANSACTION: 単独高値残り
@@ -16,9 +16,10 @@ stateDiagram-v2
 
 ## ルームのライフサイクル
 
+- **ルームはユーザーが手動で作成**: 自動マッチメイキング・デフォルトルームへの自動割当は行わない
 - **1ルーム = 1ゲーム**
 - `ENDED` は終端、同一ルームでの再戦は不可
-- 次戦は `POST /rooms` で新規ルームを作成してメンバーが再参加
+- 次戦はメンバーの誰かが `POST /rooms` で新規ルームを作成し、他メンバーが再参加
 - 過去ルームの扱い(保持/削除)は運用判断、ゲームロジック上は参照しない
 
 ## フェーズごとの許可操作
@@ -114,5 +115,4 @@ export function hasFullSet(player: Player): boolean {
 
 ## 制約・既知の限界
 
-- **単一ルーム前提**: Socket.IO は `DEFAULT_ROOM_ID = "default"` にハードコード、複数ルーム対応は UI 未実装(マルチルーム化は Socket ネームスペース/部屋導入を要する)
 - **出品者オフライン時の進行停止**: 現出品者が切断するとターンを回せず進行停止、タイムアウトや自動パスは非対応(再接続を待つ)

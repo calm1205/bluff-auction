@@ -1,13 +1,13 @@
-import { useStore } from "../store.js";
-import { BRAND_LABELS } from "@bluff-auction/shared";
-import { OpponentList } from "./OpponentList.js";
-import { AuctionArea } from "./AuctionArea.js";
+import { useStore } from "../store.js"
+import { BRAND_LABELS } from "@bluff-auction/shared"
+import { OpponentList } from "./OpponentList.js"
+import { AuctionArea } from "./AuctionArea.js"
 
 export function GameBoard() {
-  const view = useStore((s) => s.view);
-  const lastRevealed = useStore((s) => s.lastRevealed);
+  const view = useStore((s) => s.view)
+  const lastRevealed = useStore((s) => s.lastRevealed)
 
-  if (!view || !view.self) return <div>読み込み中...</div>;
+  if (!view || !view.self) return <div>読み込み中...</div>
 
   return (
     <div style={{ padding: 24 }}>
@@ -49,5 +49,5 @@ export function GameBoard() {
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -52,7 +52,8 @@ erDiagram
 
 補足:
 
-- `players.(room_id, user_id)` が複合PK
+- `users.id` はクライアントが生成した UUID、ユーザー名登録時に永続化
+- `players.(room_id, user_id)` が複合PK、`user_id` は `users.id` への論理参照(DB FK 未張り)
 - `auctions` は `room_id` が PK のため1ルーム同時1件
 - `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `players.user_id` 参照だが DB FK は未張り(アプリ側整合性)
 

@@ -1,12 +1,50 @@
 # 05. フロントエンド設計
 
+## 共通ヘッダー
+
+- ユーザー名登録画面以外の全画面で、画面上部に常に自分のユーザー名(Zustand store の `userName`、起動時に `GET /users/:id` で取得)を表示
+- 表示位置は固定ヘッダー、どの画面(ルーム一覧/ロビー/ゲーム/終了)でも視認できる
+- 目的: 現在どのアカウントでプレイしているかを常に明示
+- 実装は App 直下の `<UserBadge />` 等の共通コンポーネントで提供
+
 ## 画面構成
+
+### ユーザー名登録画面(初回アクセス時・整合不一致時)
+
+- 表示条件: 以下いずれか
+  - localStorage の `bluff-auction.userId` が未保存
+  - アプリ起動時の `GET /users/:id` 検証で 404 が返り、サーバー側に該当 UUID が存在しない
+- 名前入力フィールド(1文字以上、自由入力・重複可)
+- 「開始」ボタン押下で:
+  - UUID を生成
+  - `POST /users` で `{ id, name }` をサーバー登録(DB `users` テーブルへ永続化)
+  - 201 成功後に `bluff-auction.userId` へ保存、表示名を Zustand store へ反映してルーム一覧画面へ遷移
+  - 失敗時は localStorage を更新せずエラー表示
+- 以降の起動は下記「起動時の整合性チェック」を通過した場合のみこの画面をスキップ
+
+### 起動時の整合性チェック
+
+- アプリマウント直後、localStorage に `bluff-auction.userId` がある場合は `GET /users/:id` で検証
+  - 200: 返却された `name` を Zustand store の `userName` に反映し、そのままルーム一覧画面へ
+  - 404(DB に該当 UUID なし): localStorage(`bluff-auction.userId`)を削除してユーザー名登録画面へリダイレクト
+  - ネットワークエラー: 登録画面へは遷移せず、エラー表示 + 再試行可能に
+- 目的: DB リセット・別環境接続・手動削除などで UUID が失効した際の不整合状態を防ぐ
+
+### ルーム一覧画面(ルーム未選択時)
+
+- ルームはユーザーが手動で作成・選択
+- 既存ルーム一覧(`GET /rooms`): id / phase / 参加人数を表示
+  - LOBBY かつ空きありの行のみ参加可
+  - 進行中/満員はグレーアウト(観戦リンクのみ)
+- 「新規ルーム作成」ボタン(`POST /rooms` → 作成したルームへ遷移)
+- 自動マッチメイキングは行わない
 
 ### ロビー画面(phase = LOBBY)
 
-- 名前入力 + 参加ボタン
+- 参加ボタン(`POST /rooms/:id/players`、名前は Zustand store の `userName` を送信)
 - 参加者リスト(最大4名)
 - ゲーム開始ボタン(4人揃いで有効化)
+- 退出ボタン(ルーム一覧へ戻る)
 
 ### ゲーム画面(phase ≠ LOBBY)
 
@@ -29,6 +67,9 @@
 
 ```
 <App>
+ ├ <NameRegister />        (localStorage 未登録時のみ、UserBadge は非表示)
+ ├ <UserBadge />           (登録後は常時表示、自分の userName を表示)
+ ├ <RoomList />            (ルーム未選択時、一覧+新規作成)
  ├ <Lobby />               (LOBBY)
  └ <GameBoard>             (非LOBBY)
     ├ <OpponentList />
@@ -44,6 +85,8 @@
 
 Zustand store(または useReducer + Context)で以下を保持:
 
+- `userName: string | null` — 起動時 `GET /users/:id` / 登録後に設定、UserBadge や参加リクエストで参照
+- `roomId: string | null` — 入室中ルーム
 - `view: GameView | null` — サーバーからの `view-update` で置換、UI 全体の真実源
 - `lastRevealed: { brand: Brand } | null` — `auction-revealed` 受信時に設定、自分が落札したカードの実種別をハイライト表示
 - Socket 接続ハンドル(再接続・エラー制御)

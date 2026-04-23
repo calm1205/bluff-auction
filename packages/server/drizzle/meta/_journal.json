@@ -15,6 +15,13 @@
       "when": 1700000001000,
       "tag": "0001_unify_hand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1700000002000,
+      "tag": "0002_users",
+      "breakpoints": true
     }
   ]
 }

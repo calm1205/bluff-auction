@@ -1,4 +1,10 @@
-import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core"
+
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
 
 export const rooms = pgTable("rooms", {
   id: text("id").primaryKey().default("default"),
@@ -7,7 +13,7 @@ export const rooms = pgTable("rooms", {
   turnOrder: text("turn_order").array().notNull().default([]),
   winnerId: text("winner_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+})
 
 export const players = pgTable(
   "players",
@@ -27,7 +33,7 @@ export const players = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.roomId, table.userId] }),
   }),
-);
+)
 
 export const cards = pgTable("cards", {
   id: text("id").primaryKey(),
@@ -37,7 +43,7 @@ export const cards = pgTable("cards", {
   brand: text("brand").notNull(),
   holderId: text("holder_id"),
   location: text("location").notNull(),
-});
+})
 
 export const auctions = pgTable("auctions", {
   roomId: text("room_id")
@@ -52,13 +58,15 @@ export const auctions = pgTable("auctions", {
   currentBid: integer("current_bid").notNull(),
   highestBidderId: text("highest_bidder_id"),
   passedPlayerIds: text("passed_player_ids").array().notNull().default([]),
-});
+})
 
-export type RoomRow = typeof rooms.$inferSelect;
-export type NewRoomRow = typeof rooms.$inferInsert;
-export type PlayerRow = typeof players.$inferSelect;
-export type NewPlayerRow = typeof players.$inferInsert;
-export type CardRow = typeof cards.$inferSelect;
-export type NewCardRow = typeof cards.$inferInsert;
-export type AuctionRow = typeof auctions.$inferSelect;
-export type NewAuctionRow = typeof auctions.$inferInsert;
+export type UserRow = typeof users.$inferSelect
+export type NewUserRow = typeof users.$inferInsert
+export type RoomRow = typeof rooms.$inferSelect
+export type NewRoomRow = typeof rooms.$inferInsert
+export type PlayerRow = typeof players.$inferSelect
+export type NewPlayerRow = typeof players.$inferInsert
+export type CardRow = typeof cards.$inferSelect
+export type NewCardRow = typeof cards.$inferInsert
+export type AuctionRow = typeof auctions.$inferSelect
+export type NewAuctionRow = typeof auctions.$inferInsert

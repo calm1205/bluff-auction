@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"
 import type {
   Auction,
   Brand,
@@ -7,11 +7,11 @@ import type {
   Phase,
   Player,
   PlayerId,
-} from "@bluff-auction/shared";
-import type { Tx } from "./client.js";
-import { auctions, cards, players, rooms, type NewCardRow, type NewPlayerRow } from "./schema.js";
+} from "@bluff-auction/shared"
+import type { Tx } from "./client.js"
+import { auctions, cards, players, rooms, type NewCardRow, type NewPlayerRow } from "./schema.js"
 
-const DEFAULT_ROOM_ID = "default";
+const DEFAULT_ROOM_ID = "default"
 
 function initialState(): GameState {
   return {
@@ -21,31 +21,31 @@ function initialState(): GameState {
     currentAuction: null,
     winnerId: null,
     turnOrder: [],
-  };
+  }
 }
 
 export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): Promise<GameState> {
-  const [roomRow] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+  const [roomRow] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).limit(1)
 
   if (!roomRow) {
-    await tx.insert(rooms).values({ id: roomId }).onConflictDoNothing();
-    return initialState();
+    await tx.insert(rooms).values({ id: roomId }).onConflictDoNothing()
+    return initialState()
   }
 
-  const playerRows = await tx.select().from(players).where(eq(players.roomId, roomId));
-  const cardRows = await tx.select().from(cards).where(eq(cards.roomId, roomId));
-  const [auctionRow] = await tx.select().from(auctions).where(eq(auctions.roomId, roomId)).limit(1);
+  const playerRows = await tx.select().from(players).where(eq(players.roomId, roomId))
+  const cardRows = await tx.select().from(cards).where(eq(cards.roomId, roomId))
+  const [auctionRow] = await tx.select().from(auctions).where(eq(auctions.roomId, roomId)).limit(1)
 
-  const sortedPlayers = [...playerRows].sort((a, b) => a.seatIndex - b.seatIndex);
+  const sortedPlayers = [...playerRows].sort((a, b) => a.seatIndex - b.seatIndex)
 
   const playersOut: Player[] = sortedPlayers.map((p) => {
     const hand: Card[] = cardRows
       .filter((c) => c.holderId === p.userId && c.location === "hand")
-      .map((c) => ({ id: c.id, brand: c.brand as Brand }));
+      .map((c) => ({ id: c.id, brand: c.brand as Brand }))
 
     // lobby 時点で brand が null の場合、型上は Brand を要求されるが、
     // ゲーム開始前には参照されないためフォールバック値を入れる
-    const brand = (p.brand ?? "painting") as Brand;
+    const brand = (p.brand ?? "painting") as Brand
 
     return {
       id: p.userId,
@@ -56,14 +56,14 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
       fakesUsed: p.fakesUsed,
       passed: p.passed,
       online: p.online,
-    };
-  });
+    }
+  })
 
-  let currentAuction: Auction | null = null;
+  let currentAuction: Auction | null = null
   if (auctionRow) {
-    const auctionCard = cardRows.find((c) => c.id === auctionRow.cardId);
+    const auctionCard = cardRows.find((c) => c.id === auctionRow.cardId)
     if (!auctionCard) {
-      throw new Error(`オークション対象のカードが見つからない: ${auctionRow.cardId}`);
+      throw new Error(`オークション対象のカードが見つからない: ${auctionRow.cardId}`)
     }
     currentAuction = {
       sellerId: auctionRow.sellerId,
@@ -73,7 +73,7 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
       currentBid: auctionRow.currentBid,
       highestBidderId: auctionRow.highestBidderId,
       passedPlayerIds: auctionRow.passedPlayerIds as PlayerId[],
-    };
+    }
   }
 
   return {
@@ -83,7 +83,7 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     currentAuction,
     winnerId: roomRow.winnerId,
     turnOrder: roomRow.turnOrder as PlayerId[],
-  };
+  }
 }
 
 export async function saveRoomState(
@@ -92,9 +92,9 @@ export async function saveRoomState(
   roomId: string = DEFAULT_ROOM_ID,
 ): Promise<void> {
   // 依存順: auction → cards → players を削除してから room を upsert し、再挿入
-  await tx.delete(auctions).where(eq(auctions.roomId, roomId));
-  await tx.delete(cards).where(eq(cards.roomId, roomId));
-  await tx.delete(players).where(eq(players.roomId, roomId));
+  await tx.delete(auctions).where(eq(auctions.roomId, roomId))
+  await tx.delete(cards).where(eq(cards.roomId, roomId))
+  await tx.delete(players).where(eq(players.roomId, roomId))
 
   await tx
     .insert(rooms)
@@ -115,7 +115,7 @@ export async function saveRoomState(
         winnerId: state.winnerId,
         updatedAt: new Date(),
       },
-    });
+    })
 
   if (state.players.length > 0) {
     const playerRows: NewPlayerRow[] = state.players.map((p, index) => ({
@@ -128,11 +128,11 @@ export async function saveRoomState(
       passed: p.passed,
       online: p.online,
       seatIndex: index,
-    }));
-    await tx.insert(players).values(playerRows);
+    }))
+    await tx.insert(players).values(playerRows)
   }
 
-  const cardRows: NewCardRow[] = [];
+  const cardRows: NewCardRow[] = []
   for (const p of state.players) {
     for (const c of p.hand) {
       cardRows.push({
@@ -141,14 +141,14 @@ export async function saveRoomState(
         brand: c.brand,
         holderId: p.id,
         location: "hand",
-      });
+      })
     }
   }
 
   if (state.currentAuction) {
-    const auctionCard = state.currentAuction.card;
+    const auctionCard = state.currentAuction.card
     // オークション中のカードは holder を外して location='auction' として保存
-    const alreadyIncluded = cardRows.some((c) => c.id === auctionCard.id);
+    const alreadyIncluded = cardRows.some((c) => c.id === auctionCard.id)
     if (!alreadyIncluded) {
       cardRows.push({
         id: auctionCard.id,
@@ -156,12 +156,12 @@ export async function saveRoomState(
         brand: auctionCard.brand,
         holderId: null,
         location: "auction",
-      });
+      })
     }
   }
 
   if (cardRows.length > 0) {
-    await tx.insert(cards).values(cardRows);
+    await tx.insert(cards).values(cardRows)
   }
 
   if (state.currentAuction) {
@@ -174,6 +174,6 @@ export async function saveRoomState(
       currentBid: state.currentAuction.currentBid,
       highestBidderId: state.currentAuction.highestBidderId,
       passedPlayerIds: state.currentAuction.passedPlayerIds,
-    });
+    })
   }
 }

@@ -1,26 +1,26 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { eq } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
-import { loadRoomState, saveRoomState } from "../db/repository.js";
-import { withTx, db } from "../db/client.js";
-import { rooms } from "../db/schema.js";
-import { addPlayer, removePlayer, startGame } from "../gameEngine.js";
-import { buildView } from "../viewFilter.js";
-import type { EngineEvent } from "../gameEngine.js";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
+import { eq } from "drizzle-orm"
+import { randomUUID } from "node:crypto"
+import { loadRoomState, saveRoomState } from "../db/repository.js"
+import { withTx, db } from "../db/client.js"
+import { rooms } from "../db/schema.js"
+import { addPlayer, removePlayer, startGame } from "../gameEngine.js"
+import { buildView } from "../viewFilter.js"
+import type { EngineEvent } from "../gameEngine.js"
 
 type RoomOpsDeps = {
-  broadcastViews: (roomId: string) => Promise<void>;
-  dispatchEngineEvents: (events: EngineEvent[], roomId: string) => Promise<void>;
-};
+  broadcastViews: (roomId: string) => Promise<void>
+  dispatchEngineEvents: (events: EngineEvent[], roomId: string) => Promise<void>
+}
 
 // X-User-Id ヘッダを必須とするルート用のヘルパ
 function requireUserId(req: FastifyRequest, reply: FastifyReply): string | null {
-  const uid = req.headers["x-user-id"];
+  const uid = req.headers["x-user-id"]
   if (typeof uid !== "string" || !uid) {
-    reply.code(401).send({ code: "unauthorized", message: "X-User-Id ヘッダが必要" });
-    return null;
+    reply.code(401).send({ code: "unauthorized", message: "X-User-Id ヘッダが必要" })
+    return null
   }
-  return uid;
+  return uid
 }
 
 export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps): Promise<void> {
@@ -41,11 +41,11 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (_req, reply) => {
-      const id = randomUUID();
-      await db.insert(rooms).values({ id });
-      reply.code(201).send({ id });
+      const id = randomUUID()
+      await db.insert(rooms).values({ id })
+      reply.code(201).send({ id })
     },
-  );
+  )
 
   // ルーム一覧
   app.get(
@@ -71,16 +71,16 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async () => {
-      const roomRows = await db.select().from(rooms);
+      const roomRows = await db.select().from(rooms)
       const result = await Promise.all(
         roomRows.map(async (r) => {
-          const state = await withTx((tx) => loadRoomState(tx, r.id));
-          return { id: r.id, phase: state.phase, playerCount: state.players.length };
+          const state = await withTx((tx) => loadRoomState(tx, r.id))
+          return { id: r.id, phase: state.phase, playerCount: state.players.length }
         }),
-      );
-      return result;
+      )
+      return result
     },
-  );
+  )
 
   // ルーム詳細(観戦ビュー: 秘匿情報なし)
   app.get<{ Params: { id: string } }>(
@@ -97,18 +97,18 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (req, reply) => {
-      const state = await withTx((tx) => loadRoomState(tx, req.params.id));
+      const state = await withTx((tx) => loadRoomState(tx, req.params.id))
       if (state.players.length === 0 && state.phase === "lobby") {
         // 未作成 or 空ルームは存在しないとみなす
-        const [exists] = await db.select().from(rooms).where(eq(rooms.id, req.params.id)).limit(1);
+        const [exists] = await db.select().from(rooms).where(eq(rooms.id, req.params.id)).limit(1)
         if (!exists) {
-          reply.code(404).send({ code: "not-found", message: "ルームが存在しない" });
-          return;
+          reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
+          return
         }
       }
-      return buildView(state, null);
+      return buildView(state, null)
     },
-  );
+  )
 
   // ルーム参加
   app.post<{ Params: { id: string }; Body: { name: string } }>(
@@ -135,28 +135,28 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (req, reply) => {
-      const userId = requireUserId(req, reply);
-      if (!userId) return;
-      const roomId = req.params.id;
+      const userId = requireUserId(req, reply)
+      if (!userId) return
+      const roomId = req.params.id
 
       const { ok, code, message } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, roomId);
-        const res = addPlayer(s, userId, req.body.name);
+        const s = await loadRoomState(tx, roomId)
+        const res = addPlayer(s, userId, req.body.name)
         if (res.ok) {
-          await saveRoomState(tx, s, roomId);
-          return { ok: true as const };
+          await saveRoomState(tx, s, roomId)
+          return { ok: true as const }
         }
-        return { ok: false as const, code: res.code, message: res.message };
-      });
+        return { ok: false as const, code: res.code, message: res.message }
+      })
 
       if (!ok) {
-        reply.code(400).send({ code, message });
-        return;
+        reply.code(400).send({ code, message })
+        return
       }
-      await deps.broadcastViews(roomId);
-      reply.code(204).send();
+      await deps.broadcastViews(roomId)
+      reply.code(204).send()
     },
-  );
+  )
 
   // ルーム離脱(自身のみ)
   app.delete<{ Params: { id: string } }>(
@@ -178,28 +178,28 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (req, reply) => {
-      const userId = requireUserId(req, reply);
-      if (!userId) return;
-      const roomId = req.params.id;
+      const userId = requireUserId(req, reply)
+      if (!userId) return
+      const roomId = req.params.id
 
       const { ok, code, message } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, roomId);
-        const res = removePlayer(s, userId);
+        const s = await loadRoomState(tx, roomId)
+        const res = removePlayer(s, userId)
         if (res.ok) {
-          await saveRoomState(tx, s, roomId);
-          return { ok: true as const };
+          await saveRoomState(tx, s, roomId)
+          return { ok: true as const }
         }
-        return { ok: false as const, code: res.code, message: res.message };
-      });
+        return { ok: false as const, code: res.code, message: res.message }
+      })
 
       if (!ok) {
-        reply.code(400).send({ code, message });
-        return;
+        reply.code(400).send({ code, message })
+        return
       }
-      await deps.broadcastViews(roomId);
-      reply.code(204).send();
+      await deps.broadcastViews(roomId)
+      reply.code(204).send()
     },
-  );
+  )
 
   // ゲーム開始
   app.post<{ Params: { id: string } }>(
@@ -221,26 +221,26 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (req, reply) => {
-      const userId = requireUserId(req, reply);
-      if (!userId) return;
-      const roomId = req.params.id;
+      const userId = requireUserId(req, reply)
+      if (!userId) return
+      const roomId = req.params.id
 
       const { ok, code, message, events } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, roomId);
-        const res = startGame(s);
+        const s = await loadRoomState(tx, roomId)
+        const res = startGame(s, roomId)
         if (res.ok) {
-          await saveRoomState(tx, s, roomId);
-          return { ok: true as const, events: res.events };
+          await saveRoomState(tx, s, roomId)
+          return { ok: true as const, events: res.events }
         }
-        return { ok: false as const, code: res.code, message: res.message, events: [] };
-      });
+        return { ok: false as const, code: res.code, message: res.message, events: [] }
+      })
 
       if (!ok) {
-        reply.code(400).send({ code, message });
-        return;
+        reply.code(400).send({ code, message })
+        return
       }
-      await deps.dispatchEngineEvents(events, roomId);
-      reply.code(204).send();
+      await deps.dispatchEngineEvents(events, roomId)
+      reply.code(204).send()
     },
-  );
+  )
 }

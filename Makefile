@@ -1,4 +1,4 @@
-.PHONY: ox fmt lint db-gen db-migrate
+.PHONY: ox fmt lint db-gen db-migrate db-reset
 
 # .env があれば読み込み、子プロセスへ export
 -include .env
@@ -17,3 +17,7 @@ db-gen: ## schema から新規マイグレーション SQL を生成
 
 db-migrate: ## マイグレーションを DB に適用
 	npm run db:migrate --workspace=@bluff-auction/server
+
+db-reset: ## RDB の全テーブルを TRUNCATE(スキーマは保持)
+	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+		-c "TRUNCATE TABLE auctions, cards, players, rooms, users RESTART IDENTITY CASCADE;"

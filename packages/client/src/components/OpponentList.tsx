@@ -1,10 +1,10 @@
-import { useStore } from "../store.js";
+import { useStore } from "../store.js"
 
 export function OpponentList() {
-  const view = useStore((s) => s.view);
-  if (!view) return null;
+  const view = useStore((s) => s.view)
+  if (!view) return null
 
-  const currentSellerId = view.turnOrder[view.turnIndex];
+  const currentSellerId = view.turnOrder[view.turnIndex]
 
   return (
     <section style={{ marginTop: 16 }}>
@@ -38,11 +38,11 @@ export function OpponentList() {
         </tbody>
       </table>
     </section>
-  );
+  )
 }
 
 const cellStyle: React.CSSProperties = {
   border: "1px solid #ccc",
   padding: "6px 10px",
   textAlign: "left",
-};
+}

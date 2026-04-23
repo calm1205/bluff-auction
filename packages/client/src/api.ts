@@ -1,44 +1,84 @@
-import { getOrCreateUserId } from "./utils/userId.js";
+import { getStoredUserId } from "./utils/userId.js"
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4000";
-const DEFAULT_ROOM_ID = "default";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4000"
 
-type ApiError = { code: string; message: string };
+export type ApiError = { code: string; message: string }
+
+export class HttpError extends Error {
+  readonly status: number
+  readonly code: string
+  constructor(status: number, body: ApiError) {
+    super(body.message)
+    this.status = status
+    this.code = body.code
+  }
+}
 
 async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  const userId = getStoredUserId()
+  const headers: Record<string, string> = {
+    ...((init.headers as Record<string, string> | undefined) ?? {}),
+  }
+  // body がある場合のみ JSON content-type を付与(空 body + application/json は Fastify が拒否)
+  if (init.body != null) headers["Content-Type"] = "application/json"
+  // 登録済みの場合のみ X-User-Id を送信(未登録時に localStorage を汚染しない)
+  if (userId) headers["X-User-Id"] = userId
+
   const res = await fetch(`${SERVER_URL}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "X-User-Id": getOrCreateUserId(),
-      ...init.headers,
-    },
-  });
+    headers,
+  })
   if (!res.ok) {
     const body: ApiError = await res.json().catch(() => ({
       code: "unknown",
       message: `HTTP ${res.status}`,
-    }));
-    throw new Error(body.message ?? `HTTP ${res.status}`);
+    }))
+    throw new HttpError(res.status, body)
   }
-  return res;
+  return res
 }
 
-export async function joinRoom(name: string, roomId: string = DEFAULT_ROOM_ID): Promise<void> {
+export type UserRecord = { id: string; name: string }
+
+export async function registerUser(id: string, name: string): Promise<void> {
+  await request("/users", {
+    method: "POST",
+    body: JSON.stringify({ id, name }),
+  })
+}
+
+export async function getUser(id: string): Promise<UserRecord> {
+  const res = await request(`/users/${encodeURIComponent(id)}`)
+  return res.json()
+}
+
+export type RoomSummary = { id: string; phase: string; playerCount: number }
+
+export async function listRooms(): Promise<RoomSummary[]> {
+  const res = await request("/rooms")
+  return res.json()
+}
+
+export async function createRoom(): Promise<{ id: string }> {
+  const res = await request("/rooms", { method: "POST" })
+  return res.json()
+}
+
+export async function joinRoom(roomId: string, name: string): Promise<void> {
   await request(`/rooms/${encodeURIComponent(roomId)}/players`, {
     method: "POST",
     body: JSON.stringify({ name }),
-  });
+  })
 }
 
-export async function leaveRoom(roomId: string = DEFAULT_ROOM_ID): Promise<void> {
+export async function leaveRoom(roomId: string): Promise<void> {
   await request(`/rooms/${encodeURIComponent(roomId)}/players/me`, {
     method: "DELETE",
-  });
+  })
 }
 
-export async function startGame(roomId: string = DEFAULT_ROOM_ID): Promise<void> {
+export async function startGame(roomId: string): Promise<void> {
   await request(`/rooms/${encodeURIComponent(roomId)}/start`, {
     method: "POST",
-  });
+  })
 }

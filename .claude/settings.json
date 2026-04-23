@@ -6,8 +6,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && make ox",
-            "statusMessage": "make ox 実行中"
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && make ox && git add -A && { git diff --cached --quiet || git commit -m \"chore: auto-commit by Claude Code\"; } && git push",
+            "statusMessage": "make ox → commit → push 実行中",
+            "timeout": 120
           }
         ]
       }
