@@ -23,11 +23,11 @@
 
 ### 起動時の整合性チェック
 
-- アプリマウント直後、localStorage に `bluff-auction.userId` がある場合は `GET /users/:id` で検証
+- アプリマウント直後、localStorage に `bluff-auction.userId` がある場合は `GET /players/me` で検証
   - 200: 返却された `name` を Zustand store の `userName` に反映し、そのままルーム一覧画面へ
-  - 404(DB に該当 UUID なし): localStorage(`bluff-auction.userId`)を削除してユーザー名登録画面へリダイレクト
+  - 404(過去の参加履歴なし): ユーザー名登録画面へ遷移(UUID は保持したまま名前だけ再入力)
   - ネットワークエラー: 登録画面へは遷移せず、エラー表示 + 再試行可能に
-- 目的: DB リセット・別環境接続・手動削除などで UUID が失効した際の不整合状態を防ぐ
+- 目的: DB リセット・別環境接続・手動削除などで ID が失効した際に再入力を促す
 
 ### ルーム一覧画面(ルーム未選択時)
 
