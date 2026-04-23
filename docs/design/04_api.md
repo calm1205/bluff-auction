@@ -48,8 +48,7 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `too-low` | bid | 最低落札額未満 |
 | `no-cash` | bid | 所持金不足 |
 | `unauthorized` | REST | `X-User-Id` 欠落 |
-| `not-found` | GET /rooms/:id, GET /users/:id | ルーム/ユーザー未存在 |
-| `user-exists` | POST /users | `id` 既登録 |
+| `not-found` | GET /rooms/:id, GET /players/me | ルーム未存在 / プレイヤー履歴なし |
 | `db-error` | 共通 | DB 例外 |
 
 ### Server → Client
