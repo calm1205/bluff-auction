@@ -160,6 +160,6 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ### 表示名
 
-- サーバー側の `users.name` が正、クライアントはメモリ保持のみ(localStorage 非永続)
+- DB 永続化先は `players.name`(ルーム参加時に記録)。クライアントはメモリ保持のみ(localStorage 非永続)
 - 自由入力・重複可、ルーム参加時は `POST /rooms/:id/players` のボディへ送信
 - プレイヤー区別は UserId(非表示)で行う
