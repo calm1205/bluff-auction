@@ -143,7 +143,8 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `bluff-auction.userId` | UUID 文字列 | ユーザー識別子 |
 
 - 未保存ならユーザー名登録画面を表示
-- 表示名は localStorage に保存せず、起動時の `GET /users/:id` でサーバーから取得してメモリ(Zustand store)で保持
+- 表示名は localStorage に保存せず、起動時の `GET /players/me` で過去の参加履歴から取得してメモリ(Zustand store)で保持
+- 初回登録時はサーバー呼び出しなし(UUID は localStorage に即時保存、名前は最初のルーム参加時に `players` 行として DB へ永続化)
 
 ### 識別子
 
