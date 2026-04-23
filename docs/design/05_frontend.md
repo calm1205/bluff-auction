@@ -13,13 +13,12 @@
 
 - 表示条件: 以下いずれか
   - localStorage の `bluff-auction.userId` が未保存
-  - アプリ起動時の `GET /users/:id` 検証で 404 が返り、サーバー側に該当 UUID が存在しない
+  - アプリ起動時の `GET /players/me` 検証で 404 が返り、過去の参加履歴がない
 - 名前入力フィールド(1文字以上、自由入力・重複可)
 - 「開始」ボタン押下で:
-  - UUID を生成
-  - `POST /users` で `{ id, name }` をサーバー登録(DB `users` テーブルへ永続化)
-  - 201 成功後に `bluff-auction.userId` へ保存、表示名を Zustand store へ反映してルーム一覧画面へ遷移
-  - 失敗時は localStorage を更新せずエラー表示
+  - UUID を生成して `bluff-auction.userId` へ保存(サーバー呼び出しなし)
+  - 表示名を Zustand store へ反映してルーム一覧画面へ遷移
+  - 名前は最初のルーム参加時に `POST /rooms/:id/players` 経由で DB(`players.name`)へ永続化
 - 以降の起動は下記「起動時の整合性チェック」を通過した場合のみこの画面をスキップ
 
 ### 起動時の整合性チェック
