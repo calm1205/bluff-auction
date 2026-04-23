@@ -84,7 +84,7 @@
 
 Zustand store(または useReducer + Context)で以下を保持:
 
-- `userName: string | null` — 起動時 `GET /users/:id` / 登録後に設定、UserBadge や参加リクエストで参照
+- `userName: string | null` — 起動時 `GET /players/me` / 登録後に設定、UserBadge や参加リクエストで参照
 - `roomId: string | null` — 入室中ルーム
 - `view: GameView | null` — サーバーからの `view-update` で置換、UI 全体の真実源
 - `lastRevealed: { brand: Brand } | null` — `auction-revealed` 受信時に設定、自分が落札したカードの実種別をハイライト表示
