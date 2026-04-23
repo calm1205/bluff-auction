@@ -63,28 +63,19 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ## REST
 
-ヘッダ `X-User-Id` は localStorage の UUID。参加・離脱・開始系で必須(401 を返す)。
+ヘッダ `X-User-Id` は localStorage の UUID。参加・離脱・開始・自分情報取得系で必須(401 を返す)。
 
-### POST /users
+### GET /players/me
 
-- **概要**: ユーザー登録。ユーザー名登録画面の「開始」ボタンから呼び出し
-  - クライアントが生成した UUID + 入力名をサーバー側で永続化、成功後に localStorage へ UUID 保存
+- **概要**: 自分の直近の登録名取得(起動時の整合性チェック用)。過去にルーム参加したことがあれば該当 `players` 行から `name` を返す
+  - 独立した `users` テーブルは持たず、`players` 行の存在でユーザーの実在を判定
+  - 404 が返った場合、クライアントはユーザー名登録画面を表示(`bluff-auction.userId` は保持したまま名前だけ再入力)
 - **Request**
-  - Body: `{ id: string; name: string }`(`id` は UUID、`name` は1文字以上)
+  - Headers: `X-User-Id: string`
 - **Response**
-  - 201: 成功
-  - 409: `{ code: "user-exists", message }` — `id` 既登録
-  - 400: バリデーションエラー
-
-### GET /users/:id
-
-- **概要**: ユーザー存在確認 + 表示名取得。アプリ起動時に localStorage の UUID がサーバー側に存在するか検証し、返却された `name` をメモリ保持
-  - 404 が返った場合、クライアントは localStorage(`bluff-auction.userId`)を削除してユーザー名登録画面へリダイレクト
-- **Request**
-  - Params: `id: string`
-- **Response**
-  - 200: `{ id: string; name: string }`
-  - 404: `{ code: "not-found", message }` — ユーザー未登録
+  - 200: `{ userId: string; name: string }`
+  - 401: `X-User-Id` 欠落
+  - 404: `{ code: "not-found", message }` — プレイヤー履歴なし
 
 ### POST /rooms
 
