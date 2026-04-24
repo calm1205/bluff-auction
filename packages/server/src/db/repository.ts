@@ -120,7 +120,7 @@ export async function saveRoomState(
   if (state.players.length > 0) {
     const playerRows: NewPlayerRow[] = state.players.map((p, index) => ({
       roomId,
-      userId: p.id,
+      id: p.id,
       name: p.name,
       brand: state.phase === "lobby" ? null : p.brand,
       cash: p.cash,
