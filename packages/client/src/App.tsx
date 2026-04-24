@@ -36,15 +36,14 @@ export function App() {
         return
       }
       try {
-        const user = await api.getUser(storedId)
+        const me = await api.getMyPlayer()
         if (cancelled) return
-        setUserName(user.name)
+        setUserName(me.name)
         setAuthStatus("verified")
       } catch (e) {
         if (cancelled) return
         if (e instanceof api.HttpError && e.status === 404) {
-          // DB リセット等で UUID が失効。localStorage をクリアして再登録へ
-          clearUserStorage()
+          // 過去の参加履歴なし。UUID は保持したまま名前再入力
           setUserName(null)
           setAuthStatus("missing")
         } else {
