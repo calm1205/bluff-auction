@@ -178,13 +178,13 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       },
     },
     async (req, reply) => {
-      const userId = requireUserId(req, reply)
-      if (!userId) return
+      const playerId = requirePlayerId(req, reply)
+      if (!playerId) return
       const roomId = req.params.id
 
       const { ok, code, message } = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
-        const res = removePlayer(s, userId)
+        const res = removePlayer(s, playerId)
         if (res.ok) {
           await saveRoomState(tx, s, roomId)
           return { ok: true as const }
