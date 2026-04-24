@@ -40,7 +40,7 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
 
   const playersOut: Player[] = sortedPlayers.map((p) => {
     const hand: Card[] = cardRows
-      .filter((c) => c.holderId === p.userId && c.location === "hand")
+      .filter((c) => c.holderId === p.id && c.location === "hand")
       .map((c) => ({ id: c.id, brand: c.brand as Brand }))
 
     // lobby 時点で brand が null の場合、型上は Brand を要求されるが、
@@ -48,7 +48,7 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     const brand = (p.brand ?? "painting") as Brand
 
     return {
-      id: p.userId,
+      id: p.id,
       name: p.name,
       brand,
       hand,
