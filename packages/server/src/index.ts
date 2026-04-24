@@ -26,8 +26,8 @@ import { registerPlayerRoutes } from "./http/players.js"
 
 const PORT = Number(process.env.PORT ?? 4000)
 
-function getUserId(socket: import("socket.io").Socket): string | null {
-  return (socket.data.userId as string | undefined) ?? null
+function getPlayerId(socket: import("socket.io").Socket): string | null {
+  return (socket.data.playerId as string | undefined) ?? null
 }
 
 function getRoomId(socket: import("socket.io").Socket): string | null {
@@ -66,14 +66,14 @@ async function main() {
     cors: { origin: "*" },
   })
 
-  // userId -> socket.id マッピング(再接続時に更新)
-  const userSocketMap = new Map<string, string>()
+  // playerId -> socket.id マッピング(再接続時に更新)
+  const playerSocketMap = new Map<string, string>()
 
   function broadcastViewsFromState(state: GameState, roomId: string): void {
     for (const sock of io.of("/").sockets.values()) {
       if (getRoomId(sock) !== roomId) continue
-      const uid = getUserId(sock)
-      sock.emit("view-update", buildView(state, uid))
+      const pid = getPlayerId(sock)
+      sock.emit("view-update", buildView(state, pid))
     }
   }
 
@@ -87,7 +87,7 @@ async function main() {
       if (ev.type === "view-update") {
         broadcastViewsFromState(state, roomId)
       } else if (ev.type === "auction-revealed") {
-        const socketId = userSocketMap.get(ev.to)
+        const socketId = playerSocketMap.get(ev.to)
         if (socketId) {
           const sock = io.sockets.sockets.get(socketId)
           if (sock && getRoomId(sock) === roomId) {
@@ -125,38 +125,38 @@ async function main() {
   // Socket.IO: in-game イベントのみ処理
   io.use((socket, next) => {
     const auth = socket.handshake.auth
-    const userId = typeof auth?.userId === "string" ? auth.userId : null
+    const playerId = typeof auth?.playerId === "string" ? auth.playerId : null
     const roomId = typeof auth?.roomId === "string" ? auth.roomId : null
-    if (!userId) return next(new Error("userId required in auth"))
+    if (!playerId) return next(new Error("playerId required in auth"))
     if (!roomId) return next(new Error("roomId required in auth"))
-    socket.data.userId = userId
+    socket.data.playerId = playerId
     socket.data.roomId = roomId
     next()
   })
 
   io.on("connection", async (socket) => {
-    const userId = getUserId(socket)!
+    const playerId = getPlayerId(socket)!
     const roomId = getRoomId(socket)!
-    console.log(`[server] connected: user=${userId} room=${roomId} socket=${socket.id}`)
-    userSocketMap.set(userId, socket.id)
+    console.log(`[server] connected: player=${playerId} room=${roomId} socket=${socket.id}`)
+    playerSocketMap.set(playerId, socket.id)
     socket.join(roomId)
 
     // 既存プレイヤーだった場合はオンラインへ戻す
     try {
       const state = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
-        const existing = s.players.find((p) => p.id === userId)
+        const existing = s.players.find((p) => p.id === playerId)
         if (existing) {
           existing.online = true
           await saveRoomState(tx, s, roomId)
         }
         return s
       })
-      const existing = state.players.find((p) => p.id === userId)
+      const existing = state.players.find((p) => p.id === playerId)
       if (existing) {
         broadcastViewsFromState(state, roomId)
       } else {
-        socket.emit("view-update", buildView(state, userId))
+        socket.emit("view-update", buildView(state, playerId))
       }
     } catch (e) {
       console.error("[server] connection load error", e)
@@ -166,7 +166,7 @@ async function main() {
       try {
         const { result, state } = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
-          const res = listCard(s, userId, cardId, declaredBrand, startingBid)
+          const res = listCard(s, playerId, cardId, declaredBrand, startingBid)
           if (res.ok) await saveRoomState(tx, s, roomId)
           return { result: res, state: s }
         })
@@ -182,7 +182,7 @@ async function main() {
       try {
         const { result, state } = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
-          const res = bid(s, userId, amount)
+          const res = bid(s, playerId, amount)
           if (res.ok) await saveRoomState(tx, s, roomId)
           return { result: res, state: s }
         })
@@ -198,7 +198,7 @@ async function main() {
       try {
         const { result, state } = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
-          const res = pass(s, userId)
+          const res = pass(s, playerId)
           if (res.ok) await saveRoomState(tx, s, roomId)
           return { result: res, state: s }
         })
@@ -211,14 +211,14 @@ async function main() {
     })
 
     socket.on("disconnect", async () => {
-      console.log(`[server] disconnected: user=${userId} socket=${socket.id}`)
-      if (userSocketMap.get(userId) === socket.id) {
-        userSocketMap.delete(userId)
+      console.log(`[server] disconnected: player=${playerId} socket=${socket.id}`)
+      if (playerSocketMap.get(playerId) === socket.id) {
+        playerSocketMap.delete(playerId)
       }
       try {
         const { result, state } = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
-          const res = markOffline(s, userId)
+          const res = markOffline(s, playerId)
           if (res.ok) await saveRoomState(tx, s, roomId)
           return { result: res, state: s }
         })
