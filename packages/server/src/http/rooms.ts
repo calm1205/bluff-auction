@@ -13,14 +13,14 @@ type RoomOpsDeps = {
   dispatchEngineEvents: (events: EngineEvent[], roomId: string) => Promise<void>
 }
 
-// X-User-Id ヘッダを必須とするルート用のヘルパ
-function requireUserId(req: FastifyRequest, reply: FastifyReply): string | null {
-  const uid = req.headers["x-user-id"]
-  if (typeof uid !== "string" || !uid) {
-    reply.code(401).send({ code: "unauthorized", message: "X-User-Id ヘッダが必要" })
+// X-Player-Id ヘッダを必須とするルート用のヘルパ
+function requirePlayerId(req: FastifyRequest, reply: FastifyReply): string | null {
+  const pid = req.headers["x-player-id"]
+  if (typeof pid !== "string" || !pid) {
+    reply.code(401).send({ code: "unauthorized", message: "X-Player-Id ヘッダが必要" })
     return null
   }
-  return uid
+  return pid
 }
 
 export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps): Promise<void> {
@@ -129,19 +129,19 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
         },
         headers: {
           type: "object",
-          properties: { "x-user-id": { type: "string" } },
-          required: ["x-user-id"],
+          properties: { "x-player-id": { type: "string" } },
+          required: ["x-player-id"],
         },
       },
     },
     async (req, reply) => {
-      const userId = requireUserId(req, reply)
-      if (!userId) return
+      const playerId = requirePlayerId(req, reply)
+      if (!playerId) return
       const roomId = req.params.id
 
       const { ok, code, message } = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
-        const res = addPlayer(s, userId, req.body.name)
+        const res = addPlayer(s, playerId, req.body.name)
         if (res.ok) {
           await saveRoomState(tx, s, roomId)
           return { ok: true as const }
@@ -172,8 +172,8 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
         },
         headers: {
           type: "object",
-          properties: { "x-user-id": { type: "string" } },
-          required: ["x-user-id"],
+          properties: { "x-player-id": { type: "string" } },
+          required: ["x-player-id"],
         },
       },
     },
@@ -215,8 +215,8 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
         },
         headers: {
           type: "object",
-          properties: { "x-user-id": { type: "string" } },
-          required: ["x-user-id"],
+          properties: { "x-player-id": { type: "string" } },
+          required: ["x-player-id"],
         },
       },
     },
