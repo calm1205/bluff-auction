@@ -38,17 +38,10 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   return res
 }
 
-export type UserRecord = { id: string; name: string }
+export type MyPlayer = { userId: string; name: string }
 
-export async function registerUser(id: string, name: string): Promise<void> {
-  await request("/users", {
-    method: "POST",
-    body: JSON.stringify({ id, name }),
-  })
-}
-
-export async function getUser(id: string): Promise<UserRecord> {
-  const res = await request(`/users/${encodeURIComponent(id)}`)
+export async function getMyPlayer(): Promise<MyPlayer> {
+  const res = await request("/players/me")
   return res.json()
 }
 
