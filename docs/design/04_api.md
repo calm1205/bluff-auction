@@ -5,13 +5,16 @@
 - OpenAPI 定義 + Swagger UI: `http://localhost:4000/docs`
 - 型定義は `shared/events.ts` に集約
 
+認証フロー全体は [06_authentication.md](./06_authentication.md) を参照。
+
 ## Socket.IO
 
 ### 認証
 
-- クライアントは接続時に `auth.userId` を送信
-  - `io({ auth: { userId } })` で localStorage の UUID を渡す
-- サーバーは `socket.data.userId` に保持
+- クライアントは接続時に `auth.playerId` と `auth.roomId` を送信
+  - `io({ auth: { playerId, roomId } })` で localStorage の UUID と入室中ルーム ID を渡す
+- サーバーは `socket.data.playerId` / `socket.data.roomId` に保持
+- いずれか欠落で接続拒否
 
 ### Client → Server
 
@@ -47,7 +50,7 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `already-passed` | bid/pass | パス済み |
 | `too-low` | bid | 最低落札額未満 |
 | `no-cash` | bid | 所持金不足 |
-| `unauthorized` | REST | `X-User-Id` 欠落 |
+| `unauthorized` | REST | `X-Player-Id` 欠落 |
 | `not-found` | GET /rooms/:id, GET /players/me | ルーム未存在 / プレイヤー履歴なし |
 | `db-error` | 共通 | DB 例外 |
 
@@ -63,18 +66,18 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ## REST
 
-ヘッダ `X-User-Id` は localStorage の UUID。参加・離脱・開始・自分情報取得系で必須(401 を返す)。
+ヘッダ `X-Player-Id` は localStorage の UUID。参加・離脱・開始・自分情報取得系で必須(401 を返す)。
 
 ### GET /players/me
 
 - **概要**: 自分の直近の登録名取得(起動時の整合性チェック用)。過去にルーム参加したことがあれば該当 `players` 行から `name` を返す
-  - 独立した `users` テーブルは持たず、`players` 行の存在でユーザーの実在を判定
-  - 404 が返った場合、クライアントはユーザー名登録画面を表示(`bluff-auction.userId` は保持したまま名前だけ再入力)
+  - 独立したユーザーテーブルは持たず、`players` 行の存在でプレイヤーの実在を判定
+  - 404 が返った場合、クライアントはユーザー名登録画面を表示(`bluff-auction.playerId` は保持したまま名前だけ再入力)
 - **Request**
-  - Headers: `X-User-Id: string`
+  - Headers: `X-Player-Id: string`
 - **Response**
-  - 200: `{ userId: string; name: string }`
-  - 401: `X-User-Id` 欠落
+  - 200: `{ playerId: string; name: string }`
+  - 401: `X-Player-Id` 欠落
   - 404: `{ code: "not-found", message }` — プレイヤー履歴なし
 
 ### POST /rooms
@@ -105,61 +108,31 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 - **概要**: ルーム参加。名前入力後の「参加」ボタンから呼び出し
 - **Request**
   - Params: `id: string`
-  - Headers: `X-User-Id: string`
+  - Headers: `X-Player-Id: string`
   - Body: `{ name: string }`(1文字以上)
 - **Response**
   - 204: 成功(Socket.IO で `view-update` がブロードキャスト)
   - 400: `{ code, message }` — 進行中/満員など
-  - 401: `X-User-Id` 欠落
+  - 401: `X-Player-Id` 欠落
 
 ### DELETE /rooms/:id/players/me
 
 - **概要**: ルーム離脱(自身のみ)。ロビー中の「退出」ボタンから呼び出し
 - **Request**
   - Params: `id: string`
-  - Headers: `X-User-Id: string`
+  - Headers: `X-Player-Id: string`
 - **Response**
   - 204: 成功
   - 400: `{ code, message }` — ゲーム進行中は離脱不可
-  - 401: `X-User-Id` 欠落
+  - 401: `X-Player-Id` 欠落
 
 ### POST /rooms/:id/start
 
 - **概要**: ゲーム開始。4人揃った状態で「開始」ボタンから呼び出し、成功後は `view-update` が全員へブロードキャストされ LISTING へ遷移
 - **Request**
   - Params: `id: string`
-  - Headers: `X-User-Id: string`
+  - Headers: `X-Player-Id: string`
 - **Response**
   - 204: 成功
   - 400: `{ code: "not-lobby" | "not-ready", message }` — ロビー外 / 4人未満
-  - 401: `X-User-Id` 欠落
-
-## ユーザー管理
-
-### localStorage
-
-| key | value | 用途 |
-|---|---|---|
-| `bluff-auction.userId` | UUID 文字列 | ユーザー識別子 |
-
-- 未保存ならユーザー名登録画面を表示
-- 表示名は localStorage に保存せず、起動時の `GET /players/me` で過去の参加履歴から取得してメモリ(Zustand store)で保持
-- 初回登録時はサーバー呼び出しなし(UUID は localStorage に即時保存、名前は最初のルーム参加時に `players` 行として DB へ永続化)
-
-### 識別子
-
-- **UserId**: `bluff-auction.userId`(UUID)
-- PlayerId は UserId のエイリアス(ゲーム文脈)
-- Socket.IO: `socket.handshake.auth.userId` → `socket.data.userId`
-- REST: `X-User-Id` ヘッダ
-
-### 認証強度
-
-- プロトタイプでは UUID のみ(なりすまし可能な前提)
-- 友人内プレイ想定、本格認証は範囲外
-
-### 表示名
-
-- DB 永続化先は `players.name`(ルーム参加時に記録)。クライアントはメモリ保持のみ(localStorage 非永続)
-- 自由入力・重複可、ルーム参加時は `POST /rooms/:id/players` のボディへ送信
-- プレイヤー区別は UserId(非表示)で行う
+  - 401: `X-Player-Id` 欠落
