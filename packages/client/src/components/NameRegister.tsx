@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { setStoredUserId } from "../utils/userId.js"
+import { setStoredPlayerId } from "../utils/playerId.js"
 
 type Props = {
   initialError?: string | null
@@ -17,7 +17,7 @@ export function NameRegister({ initialError, onRegistered }: Props) {
       return
     }
     const id = crypto.randomUUID()
-    setStoredUserId(id)
+    setStoredPlayerId(id)
     onRegistered(trimmed)
   }
 
