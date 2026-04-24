@@ -9,6 +9,7 @@
 - [03_state_flow.md](./03_state_flow.md) — フェーズ遷移・主要ロジック(初期化/出品/入札/流札/取引)・勝利判定
 - [04_api.md](./04_api.md) — Socket.IO・REST API・ユーザー管理
 - [05_frontend.md](./05_frontend.md) — UI 設計・コンポーネント階層・状態管理
+- [06_authentication.md](./06_authentication.md) — プレイヤー認証フロー(識別子生成・REST/Socket.IO 連携・整合性チェック)
 
 ## 概要
 
