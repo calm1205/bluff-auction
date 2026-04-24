@@ -52,10 +52,10 @@ erDiagram
 
 補足:
 
-- `players.(room_id, user_id)` が複合PK、`user_id` はクライアントが生成した UUID(localStorage 保持)
-- ユーザー識別子は独立テーブルを持たず、過去の `players` 行の存在と `user_id` 一致のみで同一人物判定
+- `players.(room_id, id)` が複合PK、`players.id` はクライアントが生成した UUID(localStorage 保持)= `PlayerId`
+- ユーザー識別子は独立テーブルを持たず、過去の `players` 行の存在と `players.id` 一致のみで同一人物判定
 - `auctions` は `room_id` が PK のため1ルーム同時1件
-- `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `players.user_id` 参照だが DB FK は未張り(アプリ側整合性)
+- `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `players.id` 参照だが DB FK は未張り(アプリ側整合性)
 
 ## 列挙値(`shared/types.ts`)
 
