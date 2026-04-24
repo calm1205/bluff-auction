@@ -59,7 +59,7 @@ sequenceDiagram
 | Socket 切断 | LOBBY 既参加 | 即座に離脱(他プレイヤーが参加できるように) |
 | Socket 切断 | 進行中 | online=false で席を保持、再接続待ち |
 
-- Socket.IO 接続時は `auth.userId` 必須(未設定なら接続拒否)
+- Socket.IO 接続時は `auth.playerId` / `auth.roomId` 必須(いずれか未設定なら接続拒否)
 - 型付けされたイベント契約は `shared/events.ts`
 - 切断タイムアウトによる強制離脱は非対応(無期限保持)
 - 出品者オフラインのままでも進行を自動再開しない(`03_state_flow.md` 参照)
