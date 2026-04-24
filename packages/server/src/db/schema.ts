@@ -54,8 +54,6 @@ export const auctions = pgTable("auctions", {
   passedPlayerIds: text("passed_player_ids").array().notNull().default([]),
 })
 
-export type UserRow = typeof users.$inferSelect
-export type NewUserRow = typeof users.$inferInsert
 export type RoomRow = typeof rooms.$inferSelect
 export type NewRoomRow = typeof rooms.$inferInsert
 export type PlayerRow = typeof players.$inferSelect
