@@ -20,4 +20,4 @@ db-migrate: ## マイグレーションを DB に適用
 
 db-reset: ## RDB の全テーブルを TRUNCATE(スキーマは保持)
 	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
-		-c "TRUNCATE TABLE auctions, cards, players, rooms, users RESTART IDENTITY CASCADE;"
+		-c "TRUNCATE TABLE auctions, cards, players, rooms RESTART IDENTITY CASCADE;"
