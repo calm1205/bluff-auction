@@ -22,7 +22,7 @@ import { loadRoomState, saveRoomState } from "./db/repository.js"
 import { withTx } from "./db/client.js"
 import { runMigrations } from "./db/migrate.js"
 import { registerRoomRoutes } from "./http/rooms.js"
-import { registerUserRoutes } from "./http/users.js"
+import { registerPlayerRoutes } from "./http/players.js"
 
 const PORT = Number(process.env.PORT ?? 4000)
 
@@ -50,7 +50,7 @@ async function main() {
         version: "0.1.0",
       },
       tags: [
-        { name: "users", description: "ユーザー管理" },
+        { name: "players", description: "プレイヤー情報" },
         { name: "rooms", description: "ルーム管理" },
       ],
     },
@@ -113,7 +113,7 @@ async function main() {
   }
 
   // REST ルート
-  await registerUserRoutes(app)
+  await registerPlayerRoutes(app)
   await registerRoomRoutes(app, { broadcastViews, dispatchEngineEvents })
 
   function ackFromResult(result: EngineResult): AckResponse {
