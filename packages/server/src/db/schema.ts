@@ -15,7 +15,7 @@ export const players = pgTable(
     roomId: text("room_id")
       .notNull()
       .references(() => rooms.id, { onDelete: "cascade" }),
-    userId: text("user_id").notNull(),
+    id: text("id").notNull(),
     name: text("name").notNull(),
     brand: text("brand"),
     cash: integer("cash").notNull().default(0),
@@ -25,7 +25,7 @@ export const players = pgTable(
     seatIndex: integer("seat_index").notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.roomId, table.userId] }),
+    pk: primaryKey({ columns: [table.roomId, table.id] }),
   }),
 )
 
