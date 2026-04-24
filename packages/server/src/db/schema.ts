@@ -1,11 +1,5 @@
 import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core"
 
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-})
-
 export const rooms = pgTable("rooms", {
   id: text("id").primaryKey().default("default"),
   phase: text("phase").notNull().default("lobby"),
