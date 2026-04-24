@@ -1,4 +1,4 @@
-import { getStoredUserId } from "./utils/userId.js"
+import { getStoredPlayerId } from "./utils/playerId.js"
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4000"
 
@@ -15,14 +15,14 @@ export class HttpError extends Error {
 }
 
 async function request(path: string, init: RequestInit = {}): Promise<Response> {
-  const userId = getStoredUserId()
+  const playerId = getStoredPlayerId()
   const headers: Record<string, string> = {
     ...((init.headers as Record<string, string> | undefined) ?? {}),
   }
   // body がある場合のみ JSON content-type を付与(空 body + application/json は Fastify が拒否)
   if (init.body != null) headers["Content-Type"] = "application/json"
-  // 登録済みの場合のみ X-User-Id を送信(未登録時に localStorage を汚染しない)
-  if (userId) headers["X-User-Id"] = userId
+  // 登録済みの場合のみ X-Player-Id を送信(未登録時に localStorage を汚染しない)
+  if (playerId) headers["X-Player-Id"] = playerId
 
   const res = await fetch(`${SERVER_URL}${path}`, {
     ...init,
@@ -38,7 +38,7 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   return res
 }
 
-export type MyPlayer = { userId: string; name: string }
+export type MyPlayer = { playerId: string; name: string }
 
 export async function getMyPlayer(): Promise<MyPlayer> {
   const res = await request("/players/me")
