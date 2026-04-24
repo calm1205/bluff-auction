@@ -8,7 +8,7 @@ import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
 import * as api from "./api.js"
-import { getStoredUserId } from "./utils/userId.js"
+import { getStoredPlayerId } from "./utils/playerId.js"
 
 type AuthStatus = "loading" | "missing" | "verified" | "error"
 
@@ -30,7 +30,7 @@ export function App() {
   useEffect(() => {
     let cancelled = false
     const run = async () => {
-      const storedId = getStoredUserId()
+      const storedId = getStoredPlayerId()
       if (!storedId) {
         if (!cancelled) setAuthStatus("missing")
         return
