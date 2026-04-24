@@ -1,5 +1,4 @@
 import { useState } from "react"
-import * as api from "../api.js"
 import { setStoredUserId } from "../utils/userId.js"
 
 type Props = {
@@ -9,28 +8,17 @@ type Props = {
 
 export function NameRegister({ initialError, onRegistered }: Props) {
   const [name, setName] = useState("")
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError ?? null)
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const trimmed = name.trim()
     if (!trimmed) {
       setError("名前を入力")
       return
     }
-    setSubmitting(true)
-    setError(null)
-    try {
-      const id = crypto.randomUUID()
-      await api.registerUser(id, trimmed)
-      // サーバー側で永続化に成功してから localStorage に保存
-      setStoredUserId(id)
-      onRegistered(trimmed)
-    } catch (e) {
-      setError(`登録失敗: ${(e as Error).message}`)
-    } finally {
-      setSubmitting(false)
-    }
+    const id = crypto.randomUUID()
+    setStoredUserId(id)
+    onRegistered(trimmed)
   }
 
   return (
@@ -44,16 +32,10 @@ export function NameRegister({ initialError, onRegistered }: Props) {
           placeholder="名前"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          disabled={submitting}
           style={{ padding: 8, fontSize: 16, flex: 1 }}
         />
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting || !name.trim()}
-          style={{ padding: 8 }}
-        >
-          {submitting ? "登録中..." : "開始"}
+        <button type="button" onClick={handleSubmit} disabled={!name.trim()} style={{ padding: 8 }}>
+          開始
         </button>
       </div>
       {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
