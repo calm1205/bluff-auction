@@ -22,7 +22,7 @@ erDiagram
     }
     players {
         text room_id PK "FK rooms.id"
-        text user_id PK
+        text id PK "PlayerId (UUID)"
         text name
         text brand "nullable"
         integer cash
