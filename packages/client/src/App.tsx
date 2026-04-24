@@ -8,7 +8,7 @@ import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
 import * as api from "./api.js"
-import { clearUserStorage, getStoredUserId } from "./utils/userId.js"
+import { getStoredUserId } from "./utils/userId.js"
 
 type AuthStatus = "loading" | "missing" | "verified" | "error"
 
