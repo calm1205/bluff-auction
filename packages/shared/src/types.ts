@@ -75,6 +75,7 @@ export type GameView = {
   turnOrder: PlayerId[]
   winnerId: PlayerId | null
   hostPlayerId: PlayerId | null
+  passphrase: string
   self: SelfPlayerView | null
   others: PublicPlayerView[]
   currentAuction: PublicAuctionView | null
