@@ -91,46 +91,51 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
   - 401: `X-Player-Id` 欠落
   - 404: `{ code: "not-found", message }` — プレイヤー未登録
 
+### ルームの識別子(合言葉)について
+
+- ルームを表す `id` は **4 文字の合言葉**(英数字、混同しやすい文字を除外した 30 種から)
+- 詳細仕様は [02_data_model.md#合言葉roomsid](./02_data_model.md#合言葉roomsid) 参照
+- 全ての `:id` パスパラメータは大文字小文字を区別しない(サーバーで uppercase 正規化)
+- `id` 形式不正(4 文字でない、許可外文字を含む)の場合は `400 { code: "bad-passphrase" }`
+
 ### POST /rooms
 
-- **概要**: 新規ルーム作成(ユーザー操作)。ルーム一覧画面の「新規ルーム作成」ボタン、および終了画面の「新ルーム作成(再戦)」から呼び出し
-  - 自動マッチメイキング・自動割当は行わず、必ずユーザーが明示的に作成
-  - 1ルーム=1ゲーム設計のため、再戦時も必ず新規作成
+- **概要**: 新規ルーム作成。主催画面遷移時に呼び出し
+  - サーバーが合言葉を生成し、衝突しなければ `rooms` 行を INSERT
+  - 自動マッチメイキングなし、再戦時も必ず新規作成(1 ルーム = 1 ゲーム)
 - **Request**: ボディなし
-- **Response (201)**: `{ id: string }` — UUID
-
-### GET /rooms
-
-- **概要**: ルーム一覧取得。ルーム一覧画面の表示時に呼び出し
-- **Request**: なし
-- **Response (200)**: `Array<{ id: string; phase: string; playerCount: integer }>`
+- **Response (201)**: `{ id: string }` — 4 文字の合言葉
+- **Error**:
+  - 503 `{ code: "passphrase-exhausted", message }` — 衝突再試行が上限に達した(全空間ほぼ枯渇時のみ)
 
 ### GET /rooms/:id
 
-- **概要**: ルーム詳細(公開情報のみの観戦ビュー)。ルーム URL を直接開いた時や観戦時に呼び出し
+- **概要**: ルーム詳細(公開情報のみの観戦ビュー)。参加前画面で合言葉の存在確認や、観戦時に呼び出し
 - **Request**
-  - Params: `id: string`
+  - Params: `id: string`(4 文字の合言葉、大文字小文字どちらでも可)
 - **Response**
   - 200: `GameView`(`self: null` で秘匿情報なし)
+  - 400: `{ code: "bad-passphrase", message }` — 形式不正
   - 404: `{ code: "not-found", message }` — ルーム未存在
 
 ### POST /rooms/:id/players
 
-- **概要**: ルーム参加。`players` テーブルから登録名を取得して `room_players` 行を作成
+- **概要**: ルーム参加(合言葉で対象ルームを指定)。`players` テーブルから登録名を取得して `room_players` 行を作成
 - **Request**
-  - Params: `id: string`
+  - Params: `id: string`(合言葉)
   - Headers: `X-Player-Id: string`
-  - Body: なし(名前は `players` テーブルから自動取得)
+  - Body: なし
 - **Response**
   - 204: 成功(Socket.IO で `view-update` がブロードキャスト)
-  - 400: `{ code: "no-player" \| "not-lobby" \| "full", message }` — プレイヤー未登録 / 進行中 / 満員
+  - 400: `{ code: "bad-passphrase" \| "no-player" \| "not-lobby" \| "full", message }`
   - 401: `X-Player-Id` 欠落
+  - 404: `{ code: "not-found", message }` — 合言葉に該当するルームなし
 
 ### DELETE /rooms/:id/players/me
 
 - **概要**: ルーム離脱(自身のみ)。ロビー中の「退出」ボタンから呼び出し
 - **Request**
-  - Params: `id: string`
+  - Params: `id: string`(合言葉)
   - Headers: `X-Player-Id: string`
 - **Response**
   - 204: 成功
@@ -141,7 +146,7 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 - **概要**: ゲーム開始。4人揃った状態で「開始」ボタンから呼び出し、成功後は `view-update` が全員へブロードキャストされ LISTING へ遷移
 - **Request**
-  - Params: `id: string`
+  - Params: `id: string`(合言葉)
   - Headers: `X-Player-Id: string`
 - **Response**
   - 204: 成功
