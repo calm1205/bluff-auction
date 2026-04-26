@@ -115,8 +115,9 @@ export function removePlayer(state: GameState, id: PlayerId): EngineResult {
   return ok([{ type: "view-update" }])
 }
 
-export function startGame(state: GameState, roomId: string): EngineResult {
+export function startGame(state: GameState, roomId: string, requesterId: PlayerId): EngineResult {
   if (state.phase !== "lobby") return err("not-lobby", "ロビー以外で開始不可")
+  if (state.hostPlayerId !== requesterId) return err("not-host", "ホストのみ開始可能")
   if (state.players.length !== NUM_PLAYERS) return err("not-ready", "4人揃っていない")
 
   const shuffledBrands = shuffle([...BRANDS])
