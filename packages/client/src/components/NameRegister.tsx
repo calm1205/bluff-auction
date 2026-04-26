@@ -2,6 +2,17 @@ import { useState } from "react"
 import { generateUuid } from "@bluff-auction/shared"
 import * as api from "../api.js"
 import { setStoredPlayerId } from "../utils/playerId.js"
+import {
+  ACCENT_RED,
+  FONT_BODY,
+  FONT_MONO,
+  FONT_SERIF,
+  INK,
+  INK_SOFT,
+  PAPER,
+  SBtn,
+  ScreenFrame,
+} from "../sketch/index.js"
 
 type Props = {
   initialError?: string | null
@@ -24,7 +35,6 @@ export function NameRegister({ initialError, onRegistered }: Props) {
     try {
       const id = generateUuid()
       await api.registerPlayer(id, trimmed)
-      // サーバー側で永続化に成功してから localStorage に保存
       setStoredPlayerId(id)
       onRegistered(trimmed)
     } catch (e) {
@@ -35,29 +45,122 @@ export function NameRegister({ initialError, onRegistered }: Props) {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 480 }}>
-      <h1>Bluff Auction</h1>
-      <h2>プレイヤー登録</h2>
-      <p>プレイヤー名を入力してください(重複可)。</p>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <input
-          type="text"
-          placeholder="名前"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={submitting}
-          style={{ padding: 8, fontSize: 16, flex: 1 }}
-        />
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting || !name.trim()}
-          style={{ padding: 8 }}
-        >
-          {submitting ? "登録中..." : "開始"}
-        </button>
+    <ScreenFrame>
+      <div
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: 11,
+          letterSpacing: 2,
+          color: INK_SOFT,
+          textAlign: "right",
+        }}
+      >
+        REGISTER · 1 / 1
       </div>
-      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
-    </div>
+
+      <div style={{ marginTop: 24 }}>
+        <div
+          style={{
+            fontFamily: FONT_SERIF,
+            fontSize: 30,
+            fontWeight: 800,
+            lineHeight: 1.15,
+          }}
+        >
+          名前を入力
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontSize: 13,
+            color: INK_SOFT,
+            marginTop: 8,
+          }}
+        >
+          卓で表示される名前. あとで変更可.
+        </div>
+      </div>
+
+      <div style={{ marginTop: 32 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              letterSpacing: 2,
+              color: INK_SOFT,
+            }}
+          >
+            YOUR NAME
+          </div>
+        </div>
+        <div
+          style={{
+            position: "relative",
+            marginTop: 6,
+            borderBottom: `2px solid ${INK}`,
+            paddingBottom: 6,
+          }}
+        >
+          <input
+            type="text"
+            placeholder="ミドリ"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={submitting}
+            maxLength={16}
+            style={{
+              all: "unset",
+              fontFamily: FONT_SERIF,
+              fontSize: 28,
+              fontWeight: 700,
+              width: "100%",
+              background: PAPER,
+            }}
+          />
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontSize: 11,
+            color: INK_SOFT,
+            marginTop: 6,
+          }}
+        >
+          1 文字以上
+        </div>
+      </div>
+
+      {error && (
+        <div
+          style={{
+            color: ACCENT_RED,
+            marginTop: 18,
+            fontFamily: FONT_BODY,
+            fontSize: 13,
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <div style={{ marginTop: 56 }}>
+        <SBtn
+          bg={INK}
+          color={PAPER}
+          size="lg"
+          disabled={submitting || !name.trim()}
+          onClick={handleSubmit}
+        >
+          {submitting ? "登録中..." : "開始 →"}
+        </SBtn>
+      </div>
+    </ScreenFrame>
   )
 }
