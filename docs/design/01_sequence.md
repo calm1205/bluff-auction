@@ -50,8 +50,8 @@ sequenceDiagram
 
 | イベント | フェーズ | 動作 |
 |---|---|---|
-| ルーム作成 | — | `POST /rooms` で新規ルーム発行、作成者は続けて参加リクエスト(REST) |
-| ルーム参加 | LOBBY | `POST /rooms/:id/players` で addPlayer(REST) |
+| ルーム作成 | — | `POST /rooms` で合言葉発行、主催者は続けて参加リクエスト(REST) |
+| ルーム参加 | LOBBY | `POST /rooms/:passphrase/players` で addPlayer(REST) |
 | Socket 新規接続 | LOBBY | 既参加なら online=true に戻し、未参加なら観戦のみ |
 | Socket 再接続 | 進行中 | 席に復帰、online=true、直後に `view-update` を1回受信 |
 | 新規接続 | 進行中 | 参加不可、観戦のみ(`self: null` で view 受信) |
