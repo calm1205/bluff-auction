@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
-import { eq } from "drizzle-orm"
+import { and, eq, ne } from "drizzle-orm"
 import { generateUuid } from "@bluff-auction/shared"
 import { loadRoomState, saveRoomState } from "../db/repository.js"
 import { withTx, db } from "../db/client.js"
@@ -36,16 +36,35 @@ function resolveRoomIdParam(raw: string, reply: FastifyReply): string | null {
 }
 
 export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps): Promise<void> {
-  // ルーム作成
+  // ルーム作成 — 自分がホスト中の未完了ルームがあればそれを返却(なければ新規)
   app.post(
     "/rooms",
     {
       schema: {
         tags: ["rooms"],
-        summary: "新規ルーム作成(UUID 発行)",
+        summary: "新規ルーム作成 / 既存ホスト中ルーム返却",
+        headers: {
+          type: "object",
+          properties: { "x-player-id": { type: "string" } },
+          required: ["x-player-id"],
+        },
       },
     },
-    async (_req, reply) => {
+    async (req, reply) => {
+      const playerId = requirePlayerId(req, reply)
+      if (!playerId) return
+
+      // 自分がホスト中で ENDED でないルームがあれば、そのルームを返す
+      const [existing] = await db
+        .select({ id: rooms.id })
+        .from(rooms)
+        .where(and(eq(rooms.hostPlayerId, playerId), ne(rooms.phase, "ended")))
+        .limit(1)
+      if (existing) {
+        reply.code(200).send({ id: existing.id })
+        return
+      }
+
       const id = generateUuid()
       await db.insert(rooms).values({ id })
       reply.code(201).send({ id })
