@@ -39,7 +39,11 @@ function toPublicAuction(a: GameState["currentAuction"]): PublicAuctionView | nu
   }
 }
 
-export function buildView(state: GameState, forPlayerId: PlayerId | null): GameView {
+export function buildView(
+  state: GameState,
+  forPlayerId: PlayerId | null,
+  roomId: string,
+): GameView {
   const self = state.players.find((p) => p.id === forPlayerId)
   return {
     phase: state.phase,
@@ -47,7 +51,7 @@ export function buildView(state: GameState, forPlayerId: PlayerId | null): GameV
     turnOrder: state.turnOrder,
     winnerId: state.winnerId,
     hostPlayerId: state.hostPlayerId,
-    passphrase: state.passphrase,
+    roomId,
     self: self ? toSelfPlayer(self) : null,
     others: state.players.filter((p) => p.id !== forPlayerId).map(toPublicPlayer),
     currentAuction: toPublicAuction(state.currentAuction),
