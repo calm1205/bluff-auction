@@ -18,11 +18,12 @@ import {
   type EngineResult,
 } from "./gameEngine.js"
 import { buildView } from "./viewFilter.js"
-import { loadRoomState, saveRoomState } from "./db/repository.js"
+import { loadRoomState, resolveRoomIdByPassphrase, saveRoomState } from "./db/repository.js"
 import { withTx } from "./db/client.js"
 import { runMigrations } from "./db/migrate.js"
 import { registerRoomRoutes } from "./http/rooms.js"
 import { registerPlayerRoutes } from "./http/players.js"
+import { isValidPassphrase, normalizePassphrase } from "./passphrase.js"
 
 const PORT = Number(process.env.PORT ?? 4000)
 
@@ -79,6 +80,7 @@ async function main() {
 
   async function broadcastViews(roomId: string): Promise<void> {
     const state = await withTx((tx) => loadRoomState(tx, roomId))
+    if (!state) return
     broadcastViewsFromState(state, roomId)
   }
 
@@ -109,6 +111,7 @@ async function main() {
   // REST ハンドラから呼ばれる: 該当ルームの state を取得してイベントをディスパッチ
   async function dispatchEngineEvents(events: EngineEvent[], roomId: string): Promise<void> {
     const state = await withTx((tx) => loadRoomState(tx, roomId))
+    if (!state) return
     dispatchEvents(events, state, roomId)
   }
 
@@ -123,13 +126,19 @@ async function main() {
   const dbErrorAck: AckResponse = { ok: false, code: "db-error", message: "DB エラー" }
 
   // Socket.IO: in-game イベントのみ処理
-  io.use((socket, next) => {
+  // クライアントは auth.roomId に合言葉(passphrase)を送る → サーバーで UUID へ解決
+  io.use(async (socket, next) => {
     const auth = socket.handshake.auth
     const playerId = typeof auth?.playerId === "string" ? auth.playerId : null
-    const roomId = typeof auth?.roomId === "string" ? auth.roomId : null
+    const passRaw = typeof auth?.roomId === "string" ? auth.roomId : null
     if (!playerId) return next(new Error("playerId required in auth"))
-    if (!roomId) return next(new Error("roomId required in auth"))
+    if (!passRaw) return next(new Error("roomId(passphrase) required in auth"))
+    const passphrase = normalizePassphrase(passRaw)
+    if (!isValidPassphrase(passphrase)) return next(new Error("invalid passphrase"))
+    const roomId = await withTx((tx) => resolveRoomIdByPassphrase(tx, passphrase))
+    if (!roomId) return next(new Error("room not found"))
     socket.data.playerId = playerId
+    socket.data.passphrase = passphrase
     socket.data.roomId = roomId
     next()
   })
@@ -145,6 +154,7 @@ async function main() {
     try {
       const state = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
+        if (!s) return null
         const existing = s.players.find((p) => p.id === playerId)
         if (existing) {
           existing.online = true
@@ -152,6 +162,7 @@ async function main() {
         }
         return s
       })
+      if (!state) return
       const existing = state.players.find((p) => p.id === playerId)
       if (existing) {
         broadcastViewsFromState(state, roomId)
@@ -164,14 +175,19 @@ async function main() {
 
     socket.on("list-card", async ({ cardId, declaredBrand, startingBid }, ack) => {
       try {
-        const { result, state } = await withTx(async (tx) => {
+        const result = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
+          if (!s) return { kind: "no-room" as const }
           const res = listCard(s, playerId, cardId, declaredBrand, startingBid)
           if (res.ok) await saveRoomState(tx, s, roomId)
-          return { result: res, state: s }
+          return { kind: "engine" as const, result: res, state: s }
         })
-        if (result.ok) dispatchEvents(result.events, state, roomId)
-        ack?.(ackFromResult(result))
+        if (result.kind === "no-room") {
+          ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
+          return
+        }
+        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] list-card error", e)
         ack?.(dbErrorAck)
@@ -180,14 +196,19 @@ async function main() {
 
     socket.on("bid", async ({ amount }, ack) => {
       try {
-        const { result, state } = await withTx(async (tx) => {
+        const result = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
+          if (!s) return { kind: "no-room" as const }
           const res = bid(s, playerId, amount)
           if (res.ok) await saveRoomState(tx, s, roomId)
-          return { result: res, state: s }
+          return { kind: "engine" as const, result: res, state: s }
         })
-        if (result.ok) dispatchEvents(result.events, state, roomId)
-        ack?.(ackFromResult(result))
+        if (result.kind === "no-room") {
+          ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
+          return
+        }
+        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] bid error", e)
         ack?.(dbErrorAck)
@@ -196,14 +217,19 @@ async function main() {
 
     socket.on("pass", async (ack) => {
       try {
-        const { result, state } = await withTx(async (tx) => {
+        const result = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
+          if (!s) return { kind: "no-room" as const }
           const res = pass(s, playerId)
           if (res.ok) await saveRoomState(tx, s, roomId)
-          return { result: res, state: s }
+          return { kind: "engine" as const, result: res, state: s }
         })
-        if (result.ok) dispatchEvents(result.events, state, roomId)
-        ack?.(ackFromResult(result))
+        if (result.kind === "no-room") {
+          ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
+          return
+        }
+        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] pass error", e)
         ack?.(dbErrorAck)
@@ -216,13 +242,14 @@ async function main() {
         playerSocketMap.delete(playerId)
       }
       try {
-        const { result, state } = await withTx(async (tx) => {
+        const result = await withTx(async (tx) => {
           const s = await loadRoomState(tx, roomId)
+          if (!s) return null
           const res = markOffline(s, playerId)
           if (res.ok) await saveRoomState(tx, s, roomId)
           return { result: res, state: s }
         })
-        if (result.ok) dispatchEvents(result.events, state, roomId)
+        if (result?.result.ok) dispatchEvents(result.result.events, result.state, roomId)
       } catch (e) {
         console.error("[server] disconnect error", e)
       }
