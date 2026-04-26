@@ -94,25 +94,20 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
   - 401: `X-Player-Id` 欠落
   - 404: `{ code: "not-found", message }` — プレイヤー未登録
 
-### ルームの識別子(URL は合言葉)について
+### ルームの識別子について
 
-- DB 上のルーム PK は `rooms.id`(UUID、ハイフンなし 32 文字 hex)
-- ユーザーに見せる/URL パラメータに使う識別子は `rooms.passphrase`(4 文字)
-- 全 `:id` パスパラメータは合言葉(passphrase)を受ける。サーバーで uppercase 正規化後、`rooms.id`(UUID)に解決して内部処理に渡す
-- 詳細仕様は [02_data_model.md#合言葉roomspassphrase](./02_data_model.md#合言葉roomspassphrase) 参照
-- 形式不正(4 文字でない、許可外文字を含む)の場合は `400 { code: "bad-passphrase" }`
+- ルームの一意識別子は **UUID(ハイフンなし 32 文字 hex)** = `rooms.id`
+- 全 `:id` パスパラメータ・Socket.IO `auth.roomId` は同 UUID を受ける(大文字小文字非依存、サーバーで lowercase 正規化)
+- 形式不正(32 文字 hex でない)の場合は `400 { code: "bad-room-id" }`
+- 詳細仕様は [02_data_model.md#uuid-形式](./02_data_model.md#uuid-形式) 参照
 
 ### POST /rooms
 
 - **概要**: 新規ルーム作成。主催画面遷移時に呼び出し
-  - サーバーが UUID と合言葉を発行し、`rooms` 行を INSERT
+  - サーバーが UUID を発行して `rooms` 行を INSERT
   - 自動マッチメイキングなし、再戦時も必ず新規作成(1 ルーム = 1 ゲーム)
 - **Request**: ボディなし
-- **Response (201)**: `{ id: string; passphrase: string }`
-  - `id`: UUID(ハイフンなし 32 文字 hex)、内部参照用
-  - `passphrase`: 4 文字の合言葉、ユーザー共有用 / URL 用
-- **Error**:
-  - 503 `{ code: "passphrase-exhausted", message }` — 衝突再試行が上限に達した(全空間ほぼ枯渇時のみ)
+- **Response (201)**: `{ id: string }` — UUID(ハイフンなし 32 文字 hex)
 
 ### GET /rooms/:id
 
