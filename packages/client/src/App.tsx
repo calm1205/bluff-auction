@@ -3,7 +3,8 @@ import { socket } from "./socket.js"
 import { useStore } from "./store.js"
 import { Lobby } from "./components/Lobby.js"
 import { GameBoard } from "./components/GameBoard.js"
-import { RoomList } from "./components/RoomList.js"
+import { Home } from "./components/Home.js"
+import { JoinForm } from "./components/JoinForm.js"
 import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
@@ -15,6 +16,7 @@ type AuthStatus = "loading" | "missing" | "verified" | "error"
 export function App() {
   const roomId = useStore((s) => s.roomId)
   const userName = useStore((s) => s.userName)
+  const lobbyMode = useStore((s) => s.lobbyMode)
   const view = useStore((s) => s.view)
   const setUserName = useStore((s) => s.setUserName)
   const setView = useStore((s) => s.setView)
@@ -114,7 +116,11 @@ export function App() {
   }
 
   const screen = !roomId ? (
-    <RoomList />
+    lobbyMode === "join" ? (
+      <JoinForm />
+    ) : (
+      <Home />
+    )
   ) : view?.phase === "ended" ? (
     <EndedScreen />
   ) : view?.phase === "lobby" || !view ? (
