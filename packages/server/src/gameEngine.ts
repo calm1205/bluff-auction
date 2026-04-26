@@ -48,7 +48,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export function createInitialState(): GameState {
+export function createInitialState(passphrase: string): GameState {
   return {
     phase: "lobby",
     turnIndex: 0,
@@ -57,6 +57,7 @@ export function createInitialState(): GameState {
     winnerId: null,
     turnOrder: [],
     hostPlayerId: null,
+    passphrase,
   }
 }
 
