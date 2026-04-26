@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import type {
   Auction,
   Brand,
@@ -9,7 +9,15 @@ import type {
   PlayerId,
 } from "@bluff-auction/shared"
 import type { Tx } from "./client.js"
-import { auctions, cards, players, rooms, type NewCardRow, type NewPlayerRow } from "./schema.js"
+import {
+  auctions,
+  cards,
+  players,
+  roomPlayers,
+  rooms,
+  type NewCardRow,
+  type NewRoomPlayerRow,
+} from "./schema.js"
 
 const DEFAULT_ROOM_ID = "default"
 
@@ -32,30 +40,37 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     return initialState()
   }
 
-  const playerRows = await tx.select().from(players).where(eq(players.roomId, roomId))
+  const roomPlayerRows = await tx.select().from(roomPlayers).where(eq(roomPlayers.roomId, roomId))
   const cardRows = await tx.select().from(cards).where(eq(cards.roomId, roomId))
   const [auctionRow] = await tx.select().from(auctions).where(eq(auctions.roomId, roomId)).limit(1)
 
-  const sortedPlayers = [...playerRows].sort((a, b) => a.seatIndex - b.seatIndex)
+  // players マスターから name を引く
+  const playerIds = roomPlayerRows.map((rp) => rp.playerId)
+  const playerRows =
+    playerIds.length > 0
+      ? await tx.select().from(players).where(inArray(players.id, playerIds))
+      : []
+  const nameById = new Map(playerRows.map((p) => [p.id, p.name]))
 
-  const playersOut: Player[] = sortedPlayers.map((p) => {
+  const sortedRoomPlayers = [...roomPlayerRows].sort((a, b) => a.seatIndex - b.seatIndex)
+
+  const playersOut: Player[] = sortedRoomPlayers.map((rp) => {
     const hand: Card[] = cardRows
-      .filter((c) => c.holderId === p.id && c.location === "hand")
+      .filter((c) => c.holderId === rp.playerId && c.location === "hand")
       .map((c) => ({ id: c.id, brand: c.brand as Brand }))
 
-    // lobby 時点で brand が null の場合、型上は Brand を要求されるが、
-    // ゲーム開始前には参照されないためフォールバック値を入れる
-    const brand = (p.brand ?? "painting") as Brand
+    // lobby 時点で brand が null の場合、ゲーム開始前は参照されないためフォールバック
+    const brand = (rp.brand ?? "painting") as Brand
 
     return {
-      id: p.id,
-      name: p.name,
+      id: rp.playerId,
+      name: nameById.get(rp.playerId) ?? "(unknown)",
       brand,
       hand,
-      cash: p.cash,
-      fakesUsed: p.fakesUsed,
-      passed: p.passed,
-      online: p.online,
+      cash: rp.cash,
+      fakesUsed: rp.fakesUsed,
+      passed: rp.passed,
+      online: rp.online,
     }
   })
 
@@ -91,10 +106,11 @@ export async function saveRoomState(
   state: GameState,
   roomId: string = DEFAULT_ROOM_ID,
 ): Promise<void> {
-  // 依存順: auction → cards → players を削除してから room を upsert し、再挿入
+  // 依存順: auction → cards → room_players を削除してから room を upsert し、再挿入
+  // players マスターは別管理(POST /players で登録)、ここでは name の同期のみ upsert
   await tx.delete(auctions).where(eq(auctions.roomId, roomId))
   await tx.delete(cards).where(eq(cards.roomId, roomId))
-  await tx.delete(players).where(eq(players.roomId, roomId))
+  await tx.delete(roomPlayers).where(eq(roomPlayers.roomId, roomId))
 
   await tx
     .insert(rooms)
@@ -118,10 +134,17 @@ export async function saveRoomState(
     })
 
   if (state.players.length > 0) {
-    const playerRows: NewPlayerRow[] = state.players.map((p, index) => ({
+    // 既存プレイヤーが未登録の場合に備えて upsert(name は最新で上書き)
+    for (const p of state.players) {
+      await tx
+        .insert(players)
+        .values({ id: p.id, name: p.name })
+        .onConflictDoUpdate({ target: players.id, set: { name: p.name } })
+    }
+
+    const roomPlayerRows: NewRoomPlayerRow[] = state.players.map((p, index) => ({
       roomId,
-      id: p.id,
-      name: p.name,
+      playerId: p.id,
       brand: state.phase === "lobby" ? null : p.brand,
       cash: p.cash,
       fakesUsed: p.fakesUsed,
@@ -129,7 +152,7 @@ export async function saveRoomState(
       online: p.online,
       seatIndex: index,
     }))
-    await tx.insert(players).values(playerRows)
+    await tx.insert(roomPlayers).values(roomPlayerRows)
   }
 
   const cardRows: NewCardRow[] = []
