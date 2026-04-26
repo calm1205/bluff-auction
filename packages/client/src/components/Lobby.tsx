@@ -7,7 +7,6 @@ import * as api from "../api.js"
 export function Lobby() {
   const view = useStore((s) => s.view)
   const roomId = useStore((s) => s.roomId)
-  const userName = useStore((s) => s.userName)
   const leaveRoom = useStore((s) => s.leaveRoom)
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +31,12 @@ export function Lobby() {
         setError((e as Error).message)
       })
       .finally(() => setJoining(false))
-  }, [roomId, view, alreadyJoined, roomFull, userName])
+  }, [
+	roomId,
+	view,
+	alreadyJoined,
+	roomFull
+])
 
   if (!roomId) return null
 
