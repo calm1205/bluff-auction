@@ -12,7 +12,7 @@ import {
   INK,
   INK_SOFT,
   PAPER,
-  PassphraseDisplay,
+  RoomIdDisplay,
   SBox,
   SBtn,
   ScreenFrame,
@@ -146,7 +146,7 @@ export function Lobby() {
       <div style={{ textAlign: "center", marginTop: 22 }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT }}>合言葉</div>
         <div style={{ marginTop: 8 }}>
-          <PassphraseDisplay value={roomId} size="lg" muted={allReady} />
+          <RoomIdDisplay value={roomId} size="lg" muted={allReady} />
         </div>
         {isHost && !allReady && (
           <div
