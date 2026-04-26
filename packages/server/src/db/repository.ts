@@ -122,6 +122,7 @@ export async function saveRoomState(
       turnIndex: state.turnIndex,
       turnOrder: state.turnOrder,
       winnerId: state.winnerId,
+      hostPlayerId: state.hostPlayerId,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
@@ -131,6 +132,7 @@ export async function saveRoomState(
         turnIndex: state.turnIndex,
         turnOrder: state.turnOrder,
         winnerId: state.winnerId,
+        hostPlayerId: state.hostPlayerId,
         updatedAt: new Date(),
       },
     })
