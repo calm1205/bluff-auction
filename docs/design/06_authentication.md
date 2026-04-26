@@ -131,7 +131,7 @@ sequenceDiagram
         B->>S: GET /players/me<br/>X-Player-Id: <uuid>
         alt 200
             S-->>B: { playerId, name }
-            B->>B: Zustand に name 反映 → RoomList へ
+            B->>B: Zustand に name 反映 → 初期画面へ
         else 404
             S-->>B: not-found
             B->>B: localStorage 削除<br/>→ NameRegister 画面
