@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm"
 import { randomUUID } from "node:crypto"
 import { loadRoomState, saveRoomState } from "../db/repository.js"
 import { withTx, db } from "../db/client.js"
-import { rooms } from "../db/schema.js"
+import { players, rooms } from "../db/schema.js"
 import { addPlayer, removePlayer, startGame } from "../gameEngine.js"
 import { buildView } from "../viewFilter.js"
 import type { EngineEvent } from "../gameEngine.js"
@@ -110,8 +110,8 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
     },
   )
 
-  // ルーム参加
-  app.post<{ Params: { id: string }; Body: { name: string } }>(
+  // ルーム参加(ボディ不要、名前は players マスターから取得)
+  app.post<{ Params: { id: string } }>(
     "/rooms/:id/players",
     {
       schema: {
@@ -121,11 +121,6 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
           type: "object",
           properties: { id: { type: "string" } },
           required: ["id"],
-        },
-        body: {
-          type: "object",
-          properties: { name: { type: "string", minLength: 1 } },
-          required: ["name"],
         },
         headers: {
           type: "object",
@@ -139,9 +134,16 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       if (!playerId) return
       const roomId = req.params.id
 
+      // players マスターから name を取得(未登録なら 400)
+      const [playerRow] = await db.select().from(players).where(eq(players.id, playerId)).limit(1)
+      if (!playerRow) {
+        reply.code(400).send({ code: "no-player", message: "プレイヤー未登録" })
+        return
+      }
+
       const { ok, code, message } = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
-        const res = addPlayer(s, playerId, req.body.name)
+        const res = addPlayer(s, playerId, playerRow.name)
         if (res.ok) {
           await saveRoomState(tx, s, roomId)
           return { ok: true as const }
