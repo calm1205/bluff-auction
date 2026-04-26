@@ -89,6 +89,7 @@ stateDiagram-v2
 - 端数は出品者吸収
 - カードは seller の hand に戻る
 - `fakesUsed` は増やさない
+- `auctions` 行を削除 → CASCADE で `auction_actions` も削除
 - `unsold-penalty` イベント送信
 
 ## 取引処理(TRANSACTION)
@@ -98,6 +99,7 @@ stateDiagram-v2
 - カードを `seller.hand` → `highestBidder.hand` へ移動(落札カードは以降再出品可)
 - `auction-revealed` を落札者のみに送信
 - 宣言 ≠ 実種別なら `seller.fakesUsed += 1`
+- `auctions` 行を削除 → CASCADE で `auction_actions` も削除
 - 勝利判定
   - 落札者の `hand` に4ブランド全種 → `winnerId` 設定、phase: ENDED、`game-ended` 送信
   - 未達 → `turnIndex++` で LISTING へ
