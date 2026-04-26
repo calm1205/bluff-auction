@@ -13,14 +13,42 @@ function requirePlayerId(req: FastifyRequest, reply: FastifyReply): string | nul
 }
 
 export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> {
-  // 自分の直近の登録名取得(起動時の整合性チェック用)
-  // 過去にルーム参加したことがあれば、該当 players 行から name を返す。
+  // プレイヤー登録(身元マスターへ INSERT)
+  app.post<{ Body: { id: string; name: string } }>(
+    "/players",
+    {
+      schema: {
+        tags: ["players"],
+        summary: "プレイヤー登録",
+        body: {
+          type: "object",
+          properties: {
+            id: { type: "string", minLength: 1 },
+            name: { type: "string", minLength: 1 },
+          },
+          required: ["id", "name"],
+        },
+      },
+    },
+    async (req, reply) => {
+      const { id, name } = req.body
+      const [existing] = await db.select().from(players).where(eq(players.id, id)).limit(1)
+      if (existing) {
+        reply.code(409).send({ code: "player-exists", message: "id は既登録" })
+        return
+      }
+      await db.insert(players).values({ id, name })
+      reply.code(201).send()
+    },
+  )
+
+  // 自分の登録名取得(起動時の整合性チェック用)
   app.get(
     "/players/me",
     {
       schema: {
         tags: ["players"],
-        summary: "自分の直近の登録名取得",
+        summary: "自分のプレイヤー情報取得",
         headers: {
           type: "object",
           properties: { "x-player-id": { type: "string" } },
