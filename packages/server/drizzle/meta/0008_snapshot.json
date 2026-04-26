@@ -14,12 +14,6 @@
           "primaryKey": true,
           "notNull": true
         },
-        "passphrase": {
-          "name": "passphrase",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "phase": {
           "name": "phase",
           "type": "text",
