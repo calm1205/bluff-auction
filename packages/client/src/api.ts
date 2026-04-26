@@ -52,13 +52,6 @@ export async function registerPlayer(id: string, name: string): Promise<void> {
   })
 }
 
-export type RoomSummary = { id: string; phase: string; playerCount: number }
-
-export async function listRooms(): Promise<RoomSummary[]> {
-  const res = await request("/rooms")
-  return res.json()
-}
-
 export async function createRoom(): Promise<{ id: string }> {
   const res = await request("/rooms", { method: "POST" })
   return res.json()
