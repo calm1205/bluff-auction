@@ -52,7 +52,7 @@ sequenceDiagram
 
 | key | value | 用途 |
 |---|---|---|
-| `bluff-auction.playerId` | UUID 文字列 | プレイヤー識別子 |
+| `bluff-auction.playerId` | UUID 文字列(ハイフンなし 32 文字 hex) | プレイヤー識別子 |
 
 - 未保存 → 登録画面
 - 保存済 → 起動時に `GET /players/me` で検証
