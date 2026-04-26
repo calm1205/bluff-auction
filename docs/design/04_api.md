@@ -69,17 +69,27 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ヘッダ `X-Player-Id` は localStorage の UUID。参加・離脱・開始・自分情報取得系で必須(401 を返す)。
 
+### POST /players
+
+- **概要**: プレイヤー登録(身元マスター `players` テーブルへ INSERT)。プレイヤー名登録画面の「開始」ボタンから呼び出し
+  - クライアントが生成した UUID + 入力名をサーバー側で永続化、201 成功後に localStorage へ UUID 保存
+- **Request**
+  - Body: `{ id: string; name: string }`(`id` は UUID、`name` は1文字以上)
+- **Response**
+  - 201: 成功
+  - 409: `{ code: "player-exists", message }` — `id` 既登録
+  - 400: バリデーションエラー
+
 ### GET /players/me
 
-- **概要**: 自分の直近の登録名取得(起動時の整合性チェック用)。過去にルーム参加したことがあれば該当 `players` 行から `name` を返す
-  - 独立したユーザーテーブルは持たず、`players` 行の存在でプレイヤーの実在を判定
-  - 404 が返った場合、クライアントはユーザー名登録画面を表示(`bluff-auction.playerId` は保持したまま名前だけ再入力)
+- **概要**: 自分のプレイヤー情報取得(起動時の整合性チェック用)。`players` テーブルから `id` で引いて `name` を返す
+  - 404 が返った場合、クライアントは登録画面を表示し localStorage の `bluff-auction.playerId` を削除
 - **Request**
   - Headers: `X-Player-Id: string`
 - **Response**
   - 200: `{ playerId: string; name: string }`
   - 401: `X-Player-Id` 欠落
-  - 404: `{ code: "not-found", message }` — プレイヤー履歴なし
+  - 404: `{ code: "not-found", message }` — プレイヤー未登録
 
 ### POST /rooms
 
