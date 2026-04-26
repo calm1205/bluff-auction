@@ -9,14 +9,23 @@ export const rooms = pgTable("rooms", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })
 
-export const players = pgTable(
-  "players",
+// プレイヤー身元マスター(ルーム所属とは独立)
+export const players = pgTable("players", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ルーム所属 + ルーム単位のゲーム状態
+export const roomPlayers = pgTable(
+  "room_players",
   {
     roomId: text("room_id")
       .notNull()
       .references(() => rooms.id, { onDelete: "cascade" }),
-    id: text("id").notNull(),
-    name: text("name").notNull(),
+    playerId: text("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
     brand: text("brand"),
     cash: integer("cash").notNull().default(0),
     fakesUsed: integer("fakes_used").notNull().default(0),
@@ -25,7 +34,7 @@ export const players = pgTable(
     seatIndex: integer("seat_index").notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.roomId, table.id] }),
+    pk: primaryKey({ columns: [table.roomId, table.playerId] }),
   }),
 )
 
@@ -58,6 +67,8 @@ export type RoomRow = typeof rooms.$inferSelect
 export type NewRoomRow = typeof rooms.$inferInsert
 export type PlayerRow = typeof players.$inferSelect
 export type NewPlayerRow = typeof players.$inferInsert
+export type RoomPlayerRow = typeof roomPlayers.$inferSelect
+export type NewRoomPlayerRow = typeof roomPlayers.$inferInsert
 export type CardRow = typeof cards.$inferSelect
 export type NewCardRow = typeof cards.$inferInsert
 export type AuctionRow = typeof auctions.$inferSelect
