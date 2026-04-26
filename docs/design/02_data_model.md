@@ -10,8 +10,10 @@ erDiagram
     rooms ||--o{ room_players : has
     rooms ||--o{ cards : has
     rooms ||--o| auctions : "0..1"
+    rooms ||--o{ auction_actions : "進行中の競りの履歴"
     cards ||--o| auctions : "出品中カード"
     room_players ||--o{ auctions : "seller(論理FK)"
+    room_players ||--o{ auction_actions : "actor(論理FK)"
 
     rooms {
         text id PK "合言葉(4文字、後述)"
