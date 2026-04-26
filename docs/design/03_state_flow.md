@@ -57,6 +57,7 @@ stateDiagram-v2
 - 合格時
   - 全プレイヤーの `passed` を `false` にリセット
   - `Auction` 生成、`currentBid = startingBid`, `highestBidderId = null`
+  - `auction_actions` は空状態(前オークションのレコードは settle 時に CASCADE 削除済み)
   - phase: LISTING → BIDDING
 
 ## 入札検証(`bid`)
