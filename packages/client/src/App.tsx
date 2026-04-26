@@ -8,7 +8,7 @@ import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
 import * as api from "./api.js"
-import { getStoredPlayerId } from "./utils/playerId.js"
+import { clearPlayerStorage, getStoredPlayerId } from "./utils/playerId.js"
 
 type AuthStatus = "loading" | "missing" | "verified" | "error"
 
@@ -43,7 +43,8 @@ export function App() {
       } catch (e) {
         if (cancelled) return
         if (e instanceof api.HttpError && e.status === 404) {
-          // 過去の参加履歴なし。UUID は保持したまま名前再入力
+          // RDB に該当 player なし。localStorage の playerId を削除して再登録へ
+          clearPlayerStorage()
           setUserName(null)
           setAuthStatus("missing")
         } else {
