@@ -151,7 +151,7 @@ export function Home() {
                     lineHeight: 1.4,
                   }}
                 >
-                  仲間から聞いた{"\n"}合言葉を入れる
+                  仲間から聞いた{"\n"}ルームID を入れる
                 </div>
               </div>
               <div style={{ fontFamily: FONT_SERIF, fontSize: 22 }}>→</div>
