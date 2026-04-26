@@ -22,7 +22,7 @@ sequenceDiagram
     Note over B: 初回アクセス
     B->>LS: getStoredPlayerId() → null
     Note over B: NameRegister 画面を表示
-    B->>B: crypto.randomUUID() で生成
+    B->>B: generateUuid() で生成<br/>(ハイフンなし 32 文字 hex)
     B->>S: POST /players<br/>{ id, name }
     S->>DB: INSERT INTO players (id, name)
     S-->>B: 201 Created
