@@ -83,19 +83,6 @@ erDiagram
   - `auctions` 行が削除(落札 / 流札時)されると CASCADE で履歴も消える → 次オークションは空状態から開始
 - `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` / `auction_actions.player_id` は論理上 `room_players.player_id` 参照だが DB FK は未張り(アプリ側整合性)
 
-## 合言葉(rooms.passphrase)
-
-ルームを人間入力で特定する文字列。`rooms.passphrase` カラム(unique 制約)に格納する。`rooms.id`(UUID)とは別物。
-
-- **長さ**: 4 文字
-- **文字種**: 大文字英字 + 数字、ただし混同しやすい `0` `O` `1` `I` `L` を除外 → 30 種
-  - 採用文字集合: `23456789ABCDEFGHJKMNPQRSTUVWXYZ`
-- **衝突空間**: 30^4 = 810,000(プロトタイプ用途に十分)
-- **生成**: サーバーがランダム生成し、`rooms.passphrase` で重複チェック。衝突したら再生成(最大 N 回)
-- **正規化**: クライアント入力は大文字小文字を区別しない。サーバーで uppercase に正規化してから DB 照合
-- **ライフタイム**: ENDED ルームのレコードは削除しない方針のため、合言葉は再利用しない
-- **解決**: クライアントから渡される passphrase をサーバーが `rooms.id`(UUID)に解決し、内部処理は UUID で統一
-
 ## UUID 形式
 
 このシステムで扱う UUID は**ハイフンなし 32 文字の 16 進文字列(小文字)**で統一する。
