@@ -29,6 +29,7 @@ function initialState(): GameState {
     currentAuction: null,
     winnerId: null,
     turnOrder: [],
+    hostPlayerId: null,
   }
 }
 
