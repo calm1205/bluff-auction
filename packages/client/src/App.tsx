@@ -9,7 +9,7 @@ import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
 import { Rules } from "./components/Rules.js"
-import { RulesLink } from "./components/RulesLink.js"
+import { RulesLauncher } from "./components/RulesLauncher.js"
 import * as api from "./api.js"
 import { clearPlayerStorage, getStoredPlayerId } from "./utils/playerId.js"
 
@@ -144,35 +144,5 @@ export function App() {
         />
       )}
     </>
-  )
-}
-
-function RulesLauncher({
-  onShow,
-  variant,
-  hidden,
-}: {
-  onShow: () => void
-  variant: "pill" | "corner"
-  hidden: boolean
-}) {
-  if (hidden) return null
-  return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 24,
-        left: 0,
-        right: 0,
-        display: "flex",
-        justifyContent: "center",
-        zIndex: 40,
-        pointerEvents: "none",
-      }}
-    >
-      <div style={{ pointerEvents: "auto" }}>
-        <RulesLink variant={variant} onClick={onShow} />
-      </div>
-    </div>
   )
 }
