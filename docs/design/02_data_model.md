@@ -74,7 +74,11 @@ erDiagram
 - `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)。host / guest の区別は `rooms.host_player_id` で表現するため列を持たない
 - `players.id` はクライアント生成 UUID(localStorage 保持)= `PlayerId`
 - `auctions` は `room_id` が PK のため1ルーム同時1件
-- `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `room_players.player_id` 参照だが DB FK は未張り(アプリ側整合性)
+- `auction_actions` は進行中の競りの**時系列履歴**(bid と pass)を保持。`(room_id, seq)` 複合PK、`seq` はルーム内 1 始まりの連番(アプリ側採番)
+  - `action_type = bid` → `amount` 必須
+  - `action_type = pass` → `amount` は NULL
+  - `auctions` 行が削除(落札 / 流札時)されると CASCADE で履歴も消える → 次オークションは空状態から開始
+- `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` / `auction_actions.player_id` は論理上 `room_players.player_id` 参照だが DB FK は未張り(アプリ側整合性)
 
 ## 合言葉(rooms.id)
 
