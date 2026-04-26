@@ -18,12 +18,13 @@ import {
   type EngineResult,
 } from "./gameEngine.js"
 import { buildView } from "./viewFilter.js"
-import { loadRoomState, resolveRoomIdByPassphrase, saveRoomState } from "./db/repository.js"
+import { loadRoomState, saveRoomState } from "./db/repository.js"
 import { withTx } from "./db/client.js"
 import { runMigrations } from "./db/migrate.js"
 import { registerRoomRoutes } from "./http/rooms.js"
 import { registerPlayerRoutes } from "./http/players.js"
-import { isValidPassphrase, normalizePassphrase } from "./passphrase.js"
+
+const UUID_REGEX = /^[0-9a-f]{32}$/
 
 const PORT = Number(process.env.PORT ?? 4000)
 
@@ -74,7 +75,7 @@ async function main() {
     for (const sock of io.of("/").sockets.values()) {
       if (getRoomId(sock) !== roomId) continue
       const pid = getPlayerId(sock)
-      sock.emit("view-update", buildView(state, pid))
+      sock.emit("view-update", buildView(state, pid, roomId))
     }
   }
 
@@ -126,19 +127,16 @@ async function main() {
   const dbErrorAck: AckResponse = { ok: false, code: "db-error", message: "DB エラー" }
 
   // Socket.IO: in-game イベントのみ処理
-  // クライアントは auth.roomId に合言葉(passphrase)を送る → サーバーで UUID へ解決
+  // クライアントは auth.roomId に UUID(rooms.id)を送る
   io.use(async (socket, next) => {
     const auth = socket.handshake.auth
     const playerId = typeof auth?.playerId === "string" ? auth.playerId : null
-    const passRaw = typeof auth?.roomId === "string" ? auth.roomId : null
+    const rawRoomId = typeof auth?.roomId === "string" ? auth.roomId : null
     if (!playerId) return next(new Error("playerId required in auth"))
-    if (!passRaw) return next(new Error("roomId(passphrase) required in auth"))
-    const passphrase = normalizePassphrase(passRaw)
-    if (!isValidPassphrase(passphrase)) return next(new Error("invalid passphrase"))
-    const roomId = await withTx((tx) => resolveRoomIdByPassphrase(tx, passphrase))
-    if (!roomId) return next(new Error("room not found"))
+    if (!rawRoomId) return next(new Error("roomId required in auth"))
+    const roomId = rawRoomId.toLowerCase()
+    if (!UUID_REGEX.test(roomId)) return next(new Error("invalid roomId"))
     socket.data.playerId = playerId
-    socket.data.passphrase = passphrase
     socket.data.roomId = roomId
     next()
   })
