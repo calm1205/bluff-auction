@@ -93,6 +93,15 @@ erDiagram
 - **ライフタイム**: ENDED ルームのレコードは削除しない方針のため、合言葉は再利用しない
 - **デフォルト値**: 旧スキーマで `rooms.id` に `default('default')` が残っているが新ルームは合言葉で上書きされ、デフォルト値は実質未使用
 
+## UUID 形式
+
+このシステムで扱う UUID は**ハイフンなし 32 文字の 16 進文字列(小文字)**で統一する。
+
+- 例: `9f3c2a1b8d4e4a3f9b2c8d6e7f1a3b4c`(標準 v4 表記からハイフンを除去したもの)
+- 用途: `players.id` (= `PlayerId`、localStorage `bluff-auction.playerId` の値)
+- ルームの `rooms.id` は別仕様(4 文字合言葉、上記参照)、カードの `cards.id` は構造化文字列(`${brand}-${index}-${k}` を room スコープで namespace 化)で UUID ではない
+- 生成は `shared/uuid.ts` の `generateUuid()` をクライアント・サーバー両方で利用
+
 ## 列挙値(`shared/types.ts`)
 
 テーブルは `text` で保持、列挙値はアプリ側で定義。
