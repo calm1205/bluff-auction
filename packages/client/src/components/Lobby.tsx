@@ -52,12 +52,17 @@ export function Lobby() {
   // 4 席ぶんを seat_index 順で構築(view.turnOrder は ゲーム開始まで空なので、self/others の組合せで埋める)
   const seats: SeatData[] = useMemo(() => {
     const out: SeatData[] = []
-    const ordered: { id: string; name: string; online: boolean }[] = []
+    const ordered: { id: string; name: string; online: boolean; isCpu: boolean }[] = []
     if (view?.self) {
-      ordered.push({ id: view.self.id, name: view.self.name, online: view.self.online })
+      ordered.push({
+        id: view.self.id,
+        name: view.self.name,
+        online: view.self.online,
+        isCpu: view.self.isCpu,
+      })
     }
     view?.others.forEach((o) => {
-      ordered.push({ id: o.id, name: o.name, online: o.online })
+      ordered.push({ id: o.id, name: o.name, online: o.online, isCpu: o.isCpu })
     })
     for (let i = 0; i < NUM_PLAYERS; i++) {
       const p = ordered[i]
@@ -67,6 +72,7 @@ export function Lobby() {
         isHost: p ? p.id === view?.hostPlayerId : false,
         isYou: p ? p.id === view?.self?.id : false,
         online: p?.online ?? true,
+        isCpu: p?.isCpu ?? false,
       })
     }
     return out
@@ -85,6 +91,15 @@ export function Lobby() {
   const handleBack = () => {
     disconnectSocket()
     leaveRoom()
+  }
+
+  const handleAddCpu = async (fill: boolean) => {
+    if (!roomId) return
+    try {
+      await api.addCpuPlayers(roomId, fill ? { fill: true } : { count: 1 })
+    } catch (e) {
+      alert(`CPU 追加失敗: ${(e as Error).message}`)
+    }
   }
 
   const startBtn = (() => {
@@ -251,6 +266,29 @@ export function Lobby() {
             {!isHost && " 主催者の開始を待っています…"}
           </div>
         </SBox>
+      )}
+
+      {isHost && !allReady && alreadyJoined && (
+        <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
+          <SBtn
+            bg={PAPER}
+            color={INK}
+            size="md"
+            onClick={() => handleAddCpu(false)}
+            style={{ flex: 1 }}
+          >
+            + CPU 1人
+          </SBtn>
+          <SBtn
+            bg={ACCENT_BLUE}
+            color={PAPER}
+            size="md"
+            onClick={() => handleAddCpu(true)}
+            style={{ flex: 1 }}
+          >
+            残り席を CPU で埋める
+          </SBtn>
+        </div>
       )}
 
       <div style={{ marginTop: 24 }}>{startBtn}</div>

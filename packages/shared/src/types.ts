@@ -22,6 +22,7 @@ export type Player = {
   fakesUsed: number
   passed: boolean
   online: boolean
+  isCpu: boolean
 }
 
 export type Auction = {
@@ -52,6 +53,7 @@ export type PublicPlayerView = {
   handCount: number
   passed: boolean
   online: boolean
+  isCpu: boolean
 }
 
 export type SelfPlayerView = PublicPlayerView & {

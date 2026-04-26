@@ -17,6 +17,7 @@ export type SeatData = {
   isHost: boolean
   isYou: boolean
   online: boolean
+  isCpu: boolean
 }
 
 type Props = {
@@ -77,6 +78,20 @@ export function Seat({ seat, ready }: Props) {
                   }}
                 >
                   HOST
+                </div>
+              )}
+              {seat.isCpu && (
+                <div
+                  style={{
+                    fontFamily: FONT_MONO,
+                    fontSize: 9,
+                    padding: "1px 5px",
+                    background: INK_SOFT,
+                    color: PAPER,
+                    borderRadius: 2,
+                  }}
+                >
+                  CPU
                 </div>
               )}
             </div>

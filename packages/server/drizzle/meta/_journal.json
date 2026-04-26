@@ -64,6 +64,13 @@
       "when": 1700000008000,
       "tag": "0008_drop_passphrase",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1700000009000,
+      "tag": "0009_room_players_is_cpu",
+      "breakpoints": true
     }
   ]
 }

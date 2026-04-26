@@ -1,16 +1,17 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import { and, eq, ne } from "drizzle-orm"
-import { generateUuid } from "@bluff-auction/shared"
+import { NUM_PLAYERS, generateUuid } from "@bluff-auction/shared"
 import { loadRoomState, saveRoomState } from "../db/repository.js"
 import { withTx, db } from "../db/client.js"
 import { players, rooms } from "../db/schema.js"
-import { addPlayer, removePlayer, startGame } from "../gameEngine.js"
+import { addCpuPlayer, addPlayer, removePlayer, startGame } from "../gameEngine.js"
 import { buildView } from "../viewFilter.js"
 import type { EngineEvent } from "../gameEngine.js"
 
 type RoomOpsDeps = {
   broadcastViews: (roomId: string) => Promise<void>
   dispatchEngineEvents: (events: EngineEvent[], roomId: string) => Promise<void>
+  scheduleCpuTurn: (roomId: string) => void
 }
 
 const UUID_REGEX = /^[0-9a-f]{32}$/
@@ -203,6 +204,88 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
     },
   )
 
+  // CPU プレイヤー追加(ホストのみ・ロビーのみ)
+  app.post<{ Params: { id: string }; Body: { count?: number; fill?: boolean } }>(
+    "/rooms/:id/cpu-players",
+    {
+      schema: {
+        tags: ["rooms"],
+        summary: "CPU プレイヤーを追加(ホストのみ)",
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+        headers: {
+          type: "object",
+          properties: { "x-player-id": { type: "string" } },
+          required: ["x-player-id"],
+        },
+        body: {
+          type: "object",
+          properties: {
+            count: { type: "integer", minimum: 1, maximum: NUM_PLAYERS },
+            fill: { type: "boolean" },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (req, reply) => {
+      const playerId = requirePlayerId(req, reply)
+      if (!playerId) return
+      const roomId = resolveRoomIdParam(req.params.id, reply)
+      if (!roomId) return
+
+      const result = await withTx(async (tx) => {
+        const s = await loadRoomState(tx, roomId)
+        if (!s) return { kind: "not-found" as const }
+        if (s.phase !== "lobby")
+          return {
+            kind: "engine-error" as const,
+            code: "not-lobby",
+            message: "ロビー以外で追加不可",
+          }
+        if (s.hostPlayerId !== playerId)
+          return { kind: "engine-error" as const, code: "not-host", message: "ホストのみ追加可能" }
+
+        const remaining = NUM_PLAYERS - s.players.length
+        if (remaining <= 0)
+          return { kind: "engine-error" as const, code: "full", message: "定員到達" }
+
+        const requested = req.body?.fill ? remaining : Math.max(1, req.body?.count ?? 1)
+        const toAdd = Math.min(requested, remaining)
+
+        const addedIds: string[] = []
+        for (let i = 0; i < toAdd; i++) {
+          const cpuId = generateUuid()
+          // 名前は「CPU N」(席順は seat_index で別途決まる)
+          const cpuName = `CPU ${s.players.length + 1}`
+          // CPU 名は room_players には書かれず players マスターに保存される
+          await tx.insert(players).values({ id: cpuId, name: cpuName }).onConflictDoNothing()
+          const res = addCpuPlayer(s, cpuId, cpuName)
+          if (!res.ok)
+            return { kind: "engine-error" as const, code: res.code, message: res.message }
+          addedIds.push(cpuId)
+        }
+        await saveRoomState(tx, s, roomId)
+        return { kind: "ok" as const, addedIds }
+      })
+
+      if (result.kind === "not-found") {
+        reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
+        return
+      }
+      if (result.kind === "engine-error") {
+        const status = result.code === "not-host" ? 403 : 400
+        reply.code(status).send({ code: result.code, message: result.message })
+        return
+      }
+      await deps.broadcastViews(roomId)
+      reply.code(201).send({ added: result.addedIds })
+    },
+  )
+
   // ゲーム開始(ホストのみ)
   app.post<{ Params: { id: string } }>(
     "/rooms/:id/start",
@@ -249,6 +332,8 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
         return
       }
       await deps.dispatchEngineEvents(result.events, roomId)
+      // 開始直後の最初の出品者が CPU の場合に備え、自動進行をキック
+      deps.scheduleCpuTurn(roomId)
       reply.code(204).send()
     },
   )
