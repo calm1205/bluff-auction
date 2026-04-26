@@ -231,7 +231,7 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       const result = await withTx(async (tx) => {
         const s = await loadRoomState(tx, roomId)
         if (!s) return { kind: "not-found" as const }
-        const res = startGame(s, roomId, playerId)
+        const res = startGame(s, playerId)
         if (res.ok) {
           await saveRoomState(tx, s, roomId)
           return { kind: "ok" as const, events: res.events }
