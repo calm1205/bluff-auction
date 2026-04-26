@@ -116,14 +116,14 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ### POST /rooms/:id/players
 
-- **概要**: ルーム参加。名前入力後の「参加」ボタンから呼び出し
+- **概要**: ルーム参加。`players` テーブルから登録名を取得して `room_players` 行を作成
 - **Request**
   - Params: `id: string`
   - Headers: `X-Player-Id: string`
-  - Body: `{ name: string }`(1文字以上)
+  - Body: なし(名前は `players` テーブルから自動取得)
 - **Response**
   - 204: 成功(Socket.IO で `view-update` がブロードキャスト)
-  - 400: `{ code, message }` — 進行中/満員など
+  - 400: `{ code: "no-player" \| "not-lobby" \| "full", message }` — プレイヤー未登録 / 進行中 / 満員
   - 401: `X-Player-Id` 欠落
 
 ### DELETE /rooms/:id/players/me
