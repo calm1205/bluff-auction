@@ -4,7 +4,7 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> LOBBY: 主催者が POST /rooms<br/>(合言葉発行)
+    [*] --> LOBBY: 主催者が POST /rooms<br/>(UUID 発行)
     LOBBY --> LISTING: start-game (4人揃い)
     LISTING --> BIDDING: list-card
     BIDDING --> TRANSACTION: 単独高値残り
