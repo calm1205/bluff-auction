@@ -114,7 +114,7 @@ export function Home() {
                     lineHeight: 1.4,
                   }}
                 >
-                  {creating ? "作成中..." : "新しい卓を開いて\n合言葉を仲間に配る"}
+                  {creating ? "作成中..." : "新しい卓を開いて\nルームID を仲間に配る"}
                 </div>
               </div>
               <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: ACCENT_RED }}>→</div>
