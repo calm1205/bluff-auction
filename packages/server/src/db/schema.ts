@@ -6,6 +6,7 @@ export const rooms = pgTable("rooms", {
   turnIndex: integer("turn_index").notNull().default(0),
   turnOrder: text("turn_order").array().notNull().default([]),
   winnerId: text("winner_id"),
+  hostPlayerId: text("host_player_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 })
 
