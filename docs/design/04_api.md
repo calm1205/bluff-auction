@@ -123,6 +123,7 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 ### POST /rooms/:id/players
 
 - **概要**: ルーム参加(合言葉で対象ルームを指定)。`players` テーブルから登録名を取得して `room_players` 行を作成
+  - **ホスト確定**: 当該ルーム初の参加者であれば、サーバーは併せて `rooms.host_player_id` を当該プレイヤーに設定(以降不変)
 - **Request**
   - Params: `id: string`(合言葉)
   - Headers: `X-Player-Id: string`
