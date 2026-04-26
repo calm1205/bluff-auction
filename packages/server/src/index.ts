@@ -38,7 +38,7 @@ async function main() {
   await runMigrations()
   console.log("[server] migrations applied")
 
-  const app = Fastify({ logger: true })
+  const app = Fastify({ logger: false })
 
   await app.register(cors, { origin: "*" })
 
