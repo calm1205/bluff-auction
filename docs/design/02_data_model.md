@@ -114,7 +114,8 @@ type PublicAuctionView = {
 
 type GameView = {
   phase, turnIndex, turnOrder, winnerId,
-  self: SelfPlayerView | null,   // 観戦モード時は null
+  hostPlayerId: PlayerId | null,  // ルーム主催者(初参加者で確定、UI のホスト判定に使用)
+  self: SelfPlayerView | null,    // 観戦モード時は null
   others: PublicPlayerView[],
   currentAuction: PublicAuctionView | null,
 };
