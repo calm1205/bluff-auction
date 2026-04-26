@@ -147,7 +147,7 @@ export function JoinForm() {
             style={{
               all: "unset",
               fontFamily: FONT_MONO,
-              fontSize: 12,
+              fontSize: 16, // iOS の自動ズーム回避(>=16px)
               fontWeight: 600,
               letterSpacing: 0.5,
               color: error ? ACCENT_RED : INK,
