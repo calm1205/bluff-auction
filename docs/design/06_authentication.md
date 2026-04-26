@@ -180,7 +180,7 @@ sequenceDiagram
     participant S as サーバー
     participant DB as Postgres
 
-    B->>S: POST /rooms/:passphrase/start<br/>X-Player-Id
+    B->>S: POST /rooms/:id/start<br/>X-Player-Id
     S->>DB: SELECT host_player_id FROM rooms WHERE id = <PASSPHRASE>
     alt host_player_id ≠ X-Player-Id
         S-->>B: 403 not-host
