@@ -141,7 +141,7 @@ sequenceDiagram
     end
 ```
 
-### ルーム参加フロー
+### ルーム参加フロー(合言葉経由)
 
 ```mermaid
 sequenceDiagram
@@ -149,14 +149,19 @@ sequenceDiagram
     participant S as サーバー
     participant DB as Postgres
 
-    B->>S: POST /rooms/:id/players<br/>X-Player-Id(ボディなし)
-    S->>DB: SELECT name FROM players WHERE id = <uuid>
-    alt players 行なし
-        S-->>B: 400 no-player
+    B->>S: POST /rooms/:passphrase/players<br/>X-Player-Id(ボディなし)
+    S->>S: passphrase を uppercase 正規化
+    S->>DB: SELECT * FROM rooms WHERE id = <PASSPHRASE>
+    alt rooms 行なし
+        S-->>B: 404 not-found
     else あり
-        DB-->>S: { name }
-        S->>DB: INSERT INTO room_players (room_id, player_id, ...)
-        S-->>B: 204 No Content
+        S->>DB: SELECT name FROM players WHERE id = <player_id>
+        alt players 行なし
+            S-->>B: 400 no-player
+        else あり
+            DB-->>S: { name }
+            S->>DB: INSERT INTO room_players (room_id, player_id, ...)
+            S-->>B: 204 No Content
         S->>S: Socket.IO で view-update ブロードキャスト
     end
 ```
