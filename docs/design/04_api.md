@@ -13,9 +13,9 @@
 
 - クライアントは接続時に `auth.playerId` と `auth.roomId` を送信
   - `auth.playerId`: localStorage の `bluff-auction.playerId`(UUID)
-  - `auth.roomId`: 入室中ルームの**合言葉**(4 文字、サーバーが UUID へ解決)
-- サーバーは `socket.data.playerId` / `socket.data.passphrase` / `socket.data.roomId`(解決済み UUID)を保持
-- いずれか欠落 / passphrase 形式不正 / ルーム未存在で接続拒否
+  - `auth.roomId`: 入室中ルームの **UUID**(ハイフンなし 32 文字 hex)
+- サーバーは `socket.data.playerId` / `socket.data.roomId`(UUID、lowercase 正規化済)を保持
+- いずれか欠落 / UUID 形式不正で接続拒否
 
 ### Client → Server
 
