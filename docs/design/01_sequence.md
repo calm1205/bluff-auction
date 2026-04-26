@@ -24,7 +24,7 @@ sequenceDiagram
 
     Note over H: 主催画面へ
     H->>Srv: POST /rooms
-    Srv->>Srv: 合言葉(4文字)を生成・衝突チェック
+    Srv->>Srv: UUID(ハイフンなし 32 文字)を生成
     Srv->>DB: INSERT INTO rooms (id=PASS)
     Srv-->>H: 201 { id: "PASS" }
 
