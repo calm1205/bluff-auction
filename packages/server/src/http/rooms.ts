@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import { eq } from "drizzle-orm"
-import { loadRoomState, saveRoomState } from "../db/repository.js"
+import { generateUuid } from "@bluff-auction/shared"
+import { loadRoomState, resolveRoomIdByPassphrase, saveRoomState } from "../db/repository.js"
 import { withTx, db } from "../db/client.js"
 import { players, rooms } from "../db/schema.js"
 import { addPlayer, removePlayer, startGame } from "../gameEngine.js"
@@ -36,22 +37,27 @@ function resolvePassphraseParam(raw: string, reply: FastifyReply): string | null
 }
 
 export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps): Promise<void> {
-  // ルーム作成 — 合言葉を発行し、衝突したら再試行
+  // ルーム作成 — UUID(rooms.id)+ 合言葉(rooms.passphrase)を発行、衝突は再試行
   app.post(
     "/rooms",
     {
       schema: {
         tags: ["rooms"],
-        summary: "新規ルーム作成(合言葉発行)",
+        summary: "新規ルーム作成(UUID + 合言葉発行)",
       },
     },
     async (_req, reply) => {
       for (let i = 0; i < PASSPHRASE_GENERATION_RETRIES; i++) {
-        const id = generatePassphrase()
-        const [exists] = await db.select().from(rooms).where(eq(rooms.id, id)).limit(1)
+        const passphrase = generatePassphrase()
+        const [exists] = await db
+          .select({ id: rooms.id })
+          .from(rooms)
+          .where(eq(rooms.passphrase, passphrase))
+          .limit(1)
         if (exists) continue
-        await db.insert(rooms).values({ id })
-        reply.code(201).send({ id })
+        const id = generateUuid()
+        await db.insert(rooms).values({ id, passphrase })
+        reply.code(201).send({ id, passphrase })
         return
       }
       reply
@@ -60,7 +66,7 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
     },
   )
 
-  // ルーム詳細(観戦ビュー: 秘匿情報なし)
+  // ルーム詳細(観戦ビュー: 秘匿情報なし) — :id は合言葉
   app.get<{ Params: { id: string } }>(
     "/rooms/:id",
     {
@@ -78,17 +84,20 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       const passphrase = resolvePassphraseParam(req.params.id, reply)
       if (!passphrase) return
 
-      const [exists] = await db.select().from(rooms).where(eq(rooms.id, passphrase)).limit(1)
-      if (!exists) {
+      const state = await withTx(async (tx) => {
+        const roomId = await resolveRoomIdByPassphrase(tx, passphrase)
+        if (!roomId) return null
+        return loadRoomState(tx, roomId)
+      })
+      if (!state) {
         reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
         return
       }
-      const state = await withTx((tx) => loadRoomState(tx, passphrase))
       return buildView(state, null)
     },
   )
 
-  // ルーム参加(ボディ不要、名前は players マスターから取得)
+  // ルーム参加(ボディ不要、名前は players マスターから取得) — :id は合言葉
   app.post<{ Params: { id: string } }>(
     "/rooms/:id/players",
     {
@@ -113,13 +122,6 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       const passphrase = resolvePassphraseParam(req.params.id, reply)
       if (!passphrase) return
 
-      // ルーム存在チェック
-      const [roomRow] = await db.select().from(rooms).where(eq(rooms.id, passphrase)).limit(1)
-      if (!roomRow) {
-        reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
-        return
-      }
-
       // players マスターから name を取得(未登録なら 400)
       const [playerRow] = await db.select().from(players).where(eq(players.id, playerId)).limit(1)
       if (!playerRow) {
@@ -127,21 +129,30 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
         return
       }
 
-      const { ok, code, message } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, passphrase)
+      const result = await withTx(async (tx) => {
+        const roomId = await resolveRoomIdByPassphrase(tx, passphrase)
+        if (!roomId) {
+          return { kind: "not-found" as const }
+        }
+        const s = await loadRoomState(tx, roomId)
+        if (!s) return { kind: "not-found" as const }
         const res = addPlayer(s, playerId, playerRow.name)
         if (res.ok) {
-          await saveRoomState(tx, s, passphrase)
-          return { ok: true as const }
+          await saveRoomState(tx, s, roomId)
+          return { kind: "ok" as const, roomId }
         }
-        return { ok: false as const, code: res.code, message: res.message }
+        return { kind: "engine-error" as const, code: res.code, message: res.message }
       })
 
-      if (!ok) {
-        reply.code(400).send({ code, message })
+      if (result.kind === "not-found") {
+        reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
         return
       }
-      await deps.broadcastViews(passphrase)
+      if (result.kind === "engine-error") {
+        reply.code(400).send({ code: result.code, message: result.message })
+        return
+      }
+      await deps.broadcastViews(result.roomId)
       reply.code(204).send()
     },
   )
@@ -171,21 +182,28 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       const passphrase = resolvePassphraseParam(req.params.id, reply)
       if (!passphrase) return
 
-      const { ok, code, message } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, passphrase)
+      const result = await withTx(async (tx) => {
+        const roomId = await resolveRoomIdByPassphrase(tx, passphrase)
+        if (!roomId) return { kind: "not-found" as const }
+        const s = await loadRoomState(tx, roomId)
+        if (!s) return { kind: "not-found" as const }
         const res = removePlayer(s, playerId)
         if (res.ok) {
-          await saveRoomState(tx, s, passphrase)
-          return { ok: true as const }
+          await saveRoomState(tx, s, roomId)
+          return { kind: "ok" as const, roomId }
         }
-        return { ok: false as const, code: res.code, message: res.message }
+        return { kind: "engine-error" as const, code: res.code, message: res.message }
       })
 
-      if (!ok) {
-        reply.code(400).send({ code, message })
+      if (result.kind === "not-found") {
+        reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
         return
       }
-      await deps.broadcastViews(passphrase)
+      if (result.kind === "engine-error") {
+        reply.code(400).send({ code: result.code, message: result.message })
+        return
+      }
+      await deps.broadcastViews(result.roomId)
       reply.code(204).send()
     },
   )
@@ -215,22 +233,29 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       const passphrase = resolvePassphraseParam(req.params.id, reply)
       if (!passphrase) return
 
-      const { ok, code, message, events } = await withTx(async (tx) => {
-        const s = await loadRoomState(tx, passphrase)
-        const res = startGame(s, passphrase, playerId)
+      const result = await withTx(async (tx) => {
+        const roomId = await resolveRoomIdByPassphrase(tx, passphrase)
+        if (!roomId) return { kind: "not-found" as const }
+        const s = await loadRoomState(tx, roomId)
+        if (!s) return { kind: "not-found" as const }
+        const res = startGame(s, roomId, playerId)
         if (res.ok) {
-          await saveRoomState(tx, s, passphrase)
-          return { ok: true as const, events: res.events }
+          await saveRoomState(tx, s, roomId)
+          return { kind: "ok" as const, roomId, events: res.events }
         }
-        return { ok: false as const, code: res.code, message: res.message, events: [] }
+        return { kind: "engine-error" as const, code: res.code, message: res.message }
       })
 
-      if (!ok) {
-        const status = code === "not-host" ? 403 : 400
-        reply.code(status).send({ code, message })
+      if (result.kind === "not-found") {
+        reply.code(404).send({ code: "not-found", message: "ルームが存在しない" })
         return
       }
-      await deps.dispatchEngineEvents(events, passphrase)
+      if (result.kind === "engine-error") {
+        const status = result.code === "not-host" ? 403 : 400
+        reply.code(status).send({ code: result.code, message: result.message })
+        return
+      }
+      await deps.dispatchEngineEvents(result.events, result.roomId)
       reply.code(204).send()
     },
   )
