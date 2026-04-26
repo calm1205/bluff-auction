@@ -55,7 +55,7 @@ sequenceDiagram
 | Socket 新規接続 | LOBBY | 既参加なら online=true に戻し、未参加なら観戦のみ |
 | Socket 再接続 | 進行中 | 席に復帰、online=true、直後に `view-update` を1回受信 |
 | 新規接続 | 進行中 | 参加不可、観戦のみ(`self: null` で view 受信) |
-| ルーム離脱 | LOBBY | `DELETE /rooms/:id/players/me`(REST) |
+| ルーム離脱 | LOBBY | `DELETE /rooms/:passphrase/players/me`(REST) |
 | Socket 切断 | LOBBY 既参加 | 即座に離脱(他プレイヤーが参加できるように) |
 | Socket 切断 | 進行中 | online=false で席を保持、再接続待ち |
 
