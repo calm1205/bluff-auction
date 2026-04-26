@@ -16,7 +16,8 @@ import {
   ScreenFrame,
 } from "../sketch/index.js"
 
-const PASSPHRASE_LENGTH = 4
+const UUID_LENGTH = 32
+const UUID_REGEX = /^[0-9a-f]{32}$/
 
 export function JoinForm() {
   const setRoomId = useStore((s) => s.setRoomId)
@@ -24,12 +25,17 @@ export function JoinForm() {
   const [value, setValue] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  const normalized = value.trim().toUpperCase()
-  const filled = normalized.length === PASSPHRASE_LENGTH
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "") // ハイフン入りで貼られた場合に備えて除去
+    .slice(0, UUID_LENGTH)
+  const filled = normalized.length === UUID_LENGTH
+  const valid = filled && UUID_REGEX.test(normalized)
 
   const handleSubmit = () => {
-    if (!filled) {
-      setError("4 文字で入力")
+    if (!valid) {
+      setError("32 文字の hex で入力")
       return
     }
     setError(null)
@@ -46,11 +52,14 @@ export function JoinForm() {
   const handlePaste = async () => {
     try {
       const txt = await navigator.clipboard.readText()
-      setValue(txt.trim().slice(0, PASSPHRASE_LENGTH).toUpperCase())
+      setValue(txt)
     } catch {
-      // noop (clipboard 拒否は無視)
+      // noop
     }
   }
+
+  // 8 文字 × 4 ブロック表示用
+  const chunks = normalized.length > 0 ? (normalized.match(/.{1,8}/g) ?? []) : []
 
   return (
     <ScreenFrame>
@@ -95,7 +104,7 @@ export function JoinForm() {
             lineHeight: 1.15,
           }}
         >
-          合言葉を入力
+          ルームID を入力
         </div>
         <div
           style={{
@@ -105,11 +114,11 @@ export function JoinForm() {
             marginTop: 6,
           }}
         >
-          主催者から共有された 4 文字の合言葉
+          主催者から共有された 32 文字の ID
         </div>
       </div>
 
-      <div style={{ marginTop: 28 }}>
+      <div style={{ marginTop: 22 }}>
         <div
           style={{
             fontFamily: FONT_MONO,
@@ -125,29 +134,48 @@ export function JoinForm() {
           bg={PAPER_WARM}
           stroke={error ? ACCENT_RED : INK}
           sw={error ? 2 : 1.5}
-          style={{ padding: "16px 18px" }}
+          style={{ padding: "10px 12px", minHeight: 64 }}
         >
-          <input
-            type="text"
-            placeholder="例: AB7K"
+          <textarea
+            placeholder="a3f7b2c14e8d4f99b2018c5e6f3d92a7"
             value={value}
             onChange={(e) => {
               setError(null)
-              setValue(e.target.value.toUpperCase().slice(0, PASSPHRASE_LENGTH))
+              setValue(e.target.value)
             }}
-            maxLength={PASSPHRASE_LENGTH}
+            rows={2}
             style={{
               all: "unset",
               fontFamily: FONT_MONO,
-              fontSize: 36,
-              fontWeight: 700,
-              letterSpacing: 12,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: 0.5,
               color: error ? ACCENT_RED : INK,
-              textAlign: "center",
               width: "100%",
               boxSizing: "border-box",
+              wordBreak: "break-all",
+              lineHeight: 1.5,
+              resize: "none",
             }}
           />
+          {chunks.length > 0 && !error && (
+            <div
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: INK_SOFT,
+                marginTop: 6,
+                lineHeight: 1.4,
+                wordBreak: "break-all",
+              }}
+            >
+              {chunks.map((c, i) => (
+                <span key={i} style={{ marginRight: 6 }}>
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
         </SBox>
         <div
           style={{
@@ -160,7 +188,7 @@ export function JoinForm() {
           }}
         >
           <span>
-            {normalized.length} / {PASSPHRASE_LENGTH}
+            {normalized.length} / {UUID_LENGTH}
           </span>
           <button
             type="button"
@@ -216,11 +244,11 @@ export function JoinForm() {
 
       <div style={{ marginTop: 16 }}>
         <SBtn
-          bg={filled ? INK : "rgba(26,23,21,0.15)"}
-          color={filled ? PAPER : INK_SOFT}
+          bg={valid ? INK : "rgba(26,23,21,0.15)"}
+          color={valid ? PAPER : INK_SOFT}
           size="lg"
           onClick={handleSubmit}
-          disabled={!filled}
+          disabled={!valid}
         >
           部屋に入る →
         </SBtn>
