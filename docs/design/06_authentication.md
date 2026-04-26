@@ -4,7 +4,9 @@
 
 ## 概要
 
-- **独立したユーザーテーブルなし**: `users` のような永続テーブルは持たず、`players` 行で識別
+- **テーブル設計**: 身元マスター `players` と参加状態 `room_players` を分離
+  - `players` (id PK / name / created_at): プレイヤー登録時に作成
+  - `room_players` (room_id PK / player_id PK + ゲーム状態): ルーム参加時に作成
 - **認証強度**: プロトタイプ向けに UUID のみで識別(トークンやパスワードなし、なりすまし可能)
 - **スコープ**: 友人内プレイ想定、本格認証は範囲外
 
@@ -15,31 +17,34 @@ sequenceDiagram
     participant B as ブラウザ
     participant LS as localStorage
     participant S as サーバー
-    participant DB as Postgres (players)
+    participant DB as Postgres
 
     Note over B: 初回アクセス
     B->>LS: getStoredPlayerId() → null
-    Note over B: ユーザー登録画面を表示
+    Note over B: NameRegister 画面を表示
     B->>B: crypto.randomUUID() で生成
+    B->>S: POST /players<br/>{ id, name }
+    S->>DB: INSERT INTO players (id, name)
+    S-->>B: 201 Created
     B->>LS: setStoredPlayerId(id)
     Note over B: 以降、全ての REST/Socket.IO 通信で同じ UUID を送信
 
     Note over B: ルーム参加時
-    B->>S: POST /rooms/:id/players<br/>Header: X-Player-Id: <uuid><br/>Body: { name }
-    S->>DB: INSERT INTO players (room_id, id, name, ...)
-    Note over DB: players.id = <uuid>(UUID がそのまま PK の一部)
+    B->>S: POST /rooms/:id/players<br/>Header: X-Player-Id<br/>(Body なし)
+    S->>DB: SELECT name FROM players WHERE id = <uuid>
+    S->>DB: INSERT INTO room_players (room_id, player_id, ...)
 
     Note over B: 再起動 / 別タブ
     B->>LS: getStoredPlayerId() → <uuid>
-    B->>S: GET /players/me<br/>Header: X-Player-Id: <uuid>
-    S->>DB: SELECT * FROM players WHERE id = <uuid> LIMIT 1
-    alt 参加履歴あり
+    B->>S: GET /players/me<br/>X-Player-Id: <uuid>
+    S->>DB: SELECT * FROM players WHERE id = <uuid>
+    alt 登録あり
         DB-->>S: 該当行
         S-->>B: 200 { playerId, name }
-    else 参加履歴なし(DB リセット等)
+    else 登録なし(DB リセット等)
         DB-->>S: なし
         S-->>B: 404 not-found
-        Note over B: 登録画面へ(UUID は保持、名前だけ再入力)
+        Note over B: localStorage を削除して登録画面へ
     end
 ```
 
@@ -49,7 +54,7 @@ sequenceDiagram
 |---|---|---|
 | `bluff-auction.playerId` | UUID 文字列 | プレイヤー識別子 |
 
-- 未保存 → ユーザー登録画面
+- 未保存 → 登録画面
 - 保存済 → 起動時に `GET /players/me` で検証
 - 表示名は localStorage に保存せず、Zustand store でメモリ保持
 
@@ -68,6 +73,7 @@ sequenceDiagram
 - クライアントは `getStoredPlayerId()` が null の間は `X-Player-Id` を付与しない
 - ルーム参加系は 401 になるため、そもそも未登録で呼び出さない UI 設計
 - `GET /rooms` のような認証不要エンドポイントは未登録でも呼べる
+- `POST /players` は登録自体が目的なのでヘッダ不要
 
 ## Socket.IO 通信
 
@@ -97,18 +103,17 @@ sequenceDiagram
     participant LS as localStorage
     participant Store as Zustand store
     participant S as サーバー
+    participant DB as Postgres
 
     U->>UI: 名前入力 → 開始
     UI->>UI: crypto.randomUUID()
+    UI->>S: POST /players { id, name }
+    S->>DB: INSERT INTO players
+    DB-->>S: ok
+    S-->>UI: 201
     UI->>LS: setStoredPlayerId(id)
     UI->>Store: setUserName(name)
-    Note over S: この時点ではサーバー呼び出しなし
     UI->>U: ルーム一覧画面へ遷移
-
-    Note over U: 最初のルーム参加時
-    U->>UI: 「参加」
-    UI->>S: POST /rooms/:id/players<br/>X-Player-Id, { name }
-    S->>S: players テーブルへ INSERT<br/>(ここで初めて DB 永続化)
 ```
 
 ### 起動時の整合性チェック
@@ -129,21 +134,41 @@ sequenceDiagram
             B->>B: Zustand に name 反映 → RoomList へ
         else 404
             S-->>B: not-found
-            B->>B: NameRegister 画面<br/>(UUID は保持、名前のみ再入力)
+            B->>B: localStorage 削除<br/>→ NameRegister 画面
         else ネットワークエラー
             B->>B: エラー表示 + 再試行ボタン
         end
     end
 ```
 
+### ルーム参加フロー
+
+```mermaid
+sequenceDiagram
+    participant B as ブラウザ
+    participant S as サーバー
+    participant DB as Postgres
+
+    B->>S: POST /rooms/:id/players<br/>X-Player-Id(ボディなし)
+    S->>DB: SELECT name FROM players WHERE id = <uuid>
+    alt players 行なし
+        S-->>B: 400 no-player
+    else あり
+        DB-->>S: { name }
+        S->>DB: INSERT INTO room_players (room_id, player_id, ...)
+        S-->>B: 204 No Content
+        S->>S: Socket.IO で view-update ブロードキャスト
+    end
+```
+
 ## 再接続時
 
 - Socket.IO 切断 → 再接続すると handshake の `auth.playerId` で同一プレイヤーとして復帰
-- サーバー側は `players.online = true` に戻し、`broadcastViewsFromState` で最新状態を再配信
+- サーバー側は `room_players.online = true` に戻し、`broadcastViewsFromState` で最新状態を再配信
 - ゲーム進行中に席を失うことはない(切断タイムアウトによる強制離脱は非対応)
 
 ## 制約
 
 - **なりすまし**: UUID さえ知れば誰でも他人になれる。本番利用では認証強化必須
 - **マルチデバイス不可**: 同一 UUID で同時接続すると `playerSocketMap` が上書きされ最新 socket のみ有効
-- **DB リセット耐性**: `players` テーブルがリセットされると全 UUID が 404、再登録画面が出る(UUID 自体は保持)
+- **DB リセット耐性**: `players` テーブルがリセットされると全 UUID が 404、登録画面で再入力
