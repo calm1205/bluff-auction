@@ -82,7 +82,6 @@ export async function loadRoomState(tx: Tx, roomId: string): Promise<GameState |
     winnerId: roomRow.winnerId,
     turnOrder: roomRow.turnOrder as PlayerId[],
     hostPlayerId: roomRow.hostPlayerId,
-    passphrase: roomRow.passphrase,
   }
 }
 
