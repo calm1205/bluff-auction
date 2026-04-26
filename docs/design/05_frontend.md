@@ -143,7 +143,8 @@ stateDiagram-v2
  │   ├ <AuctionArea>
  │   │   ├ <ListingForm />           自分が出品者時
  │   │   ├ <BiddingForm />           自分が入札者時
- │   │   └ <AuctionStatus />
+ │   │   ├ <AuctionStatus />
+ │   │   └ <BidHistory />            actionHistory の時系列表示
  │   ├ <MyHand />
  │   └ <MyStats />
  └ <EndedScreen />                   phase = ended
