@@ -15,6 +15,7 @@ export function Lobby() {
   const alreadyJoined = view?.self != null
   const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0
   const roomFull = playerCount >= NUM_PLAYERS
+  const isHost = view?.self != null && view.self.id === view.hostPlayerId
 
   // view 受信後、自動で参加(名前は players マスターから取得されるためボディ送信不要)
   useEffect(() => {
@@ -51,11 +52,32 @@ export function Lobby() {
     <div style={{ padding: 24 }}>
       <h1>Bluff Auction</h1>
       <button type="button" onClick={handleBack} style={{ marginBottom: 12, padding: 6 }}>
-        ← ルーム一覧へ戻る
+        ← 退出
       </button>
+
       <h2>ロビー</h2>
-      <div style={{ fontFamily: "monospace", fontSize: 12, color: "#666", marginBottom: 8 }}>
-        ルーム: {roomId}
+
+      <div
+        style={{
+          margin: "12px 0",
+          padding: 16,
+          background: "#f5f5f5",
+          borderRadius: 8,
+          maxWidth: 320,
+        }}
+      >
+        <div style={{ fontSize: 12, color: "#666" }}>合言葉</div>
+        <div
+          style={{
+            fontSize: 36,
+            letterSpacing: 8,
+            fontFamily: "monospace",
+            textAlign: "center",
+            marginTop: 4,
+          }}
+        >
+          {roomId}
+        </div>
       </div>
 
       {!alreadyJoined && (
@@ -70,16 +92,26 @@ export function Lobby() {
         参加者 ({playerCount}/{NUM_PLAYERS})
       </h3>
       <ul>
-        {view?.self && <li>{view.self.name}(自分)</li>}
+        {view?.self && (
+          <li>
+            {view.self.name}(自分){isHost && " [ホスト]"}
+          </li>
+        )}
         {view?.others.map((p) => (
-          <li key={p.id}>{p.name}</li>
+          <li key={p.id}>
+            {p.name}
+            {p.id === view.hostPlayerId && " [ホスト]"}
+          </li>
         ))}
       </ul>
 
-      {alreadyJoined && playerCount === NUM_PLAYERS && (
+      {alreadyJoined && playerCount === NUM_PLAYERS && isHost && (
         <button type="button" onClick={handleStart} style={{ padding: 12, fontSize: 16 }}>
           ゲーム開始
         </button>
+      )}
+      {alreadyJoined && playerCount === NUM_PLAYERS && !isHost && (
+        <div style={{ color: "#666", marginTop: 12 }}>ホストの開始を待機中...</div>
       )}
     </div>
   )
