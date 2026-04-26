@@ -43,13 +43,6 @@ export async function registerRoomRoutes(app: FastifyInstance, deps: RoomOpsDeps
       schema: {
         tags: ["rooms"],
         summary: "新規ルーム作成(合言葉発行)",
-        response: {
-          201: {
-            type: "object",
-            properties: { id: { type: "string" } },
-            required: ["id"],
-          },
-        },
       },
     },
     async (_req, reply) => {
