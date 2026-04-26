@@ -165,7 +165,7 @@ async function main() {
       if (existing) {
         broadcastViewsFromState(state, roomId)
       } else {
-        socket.emit("view-update", buildView(state, playerId))
+        socket.emit("view-update", buildView(state, playerId, roomId))
       }
     } catch (e) {
       console.error("[server] connection load error", e)
