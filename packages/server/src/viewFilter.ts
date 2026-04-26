@@ -47,6 +47,7 @@ export function buildView(state: GameState, forPlayerId: PlayerId | null): GameV
     turnOrder: state.turnOrder,
     winnerId: state.winnerId,
     hostPlayerId: state.hostPlayerId,
+    passphrase: state.passphrase,
     self: self ? toSelfPlayer(self) : null,
     others: state.players.filter((p) => p.id !== forPlayerId).map(toPublicPlayer),
     currentAuction: toPublicAuction(state.currentAuction),
