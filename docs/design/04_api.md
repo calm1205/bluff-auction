@@ -103,11 +103,17 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ### POST /rooms
 
-- **概要**: 新規ルーム作成。主催画面遷移時に呼び出し
-  - サーバーが UUID を発行して `rooms` 行を INSERT
-  - 自動マッチメイキングなし、再戦時も必ず新規作成(1 ルーム = 1 ゲーム)
-- **Request**: ボディなし
-- **Response (201)**: `{ id: string }` — UUID(ハイフンなし 32 文字 hex)
+- **概要**: 新規ルーム作成 / 既存ホスト中ルーム返却。主催画面遷移時に呼び出し
+  - 同じプレイヤー(`X-Player-Id`)が **ホスト中で `phase != ended`** のルームを既に持っていれば、そのルーム ID を返す(同一プレイヤーが新ルームを多重作成しない)
+  - そうでない場合のみ新規 UUID を発行して `rooms` 行を INSERT
+  - 1 ルーム = 1 ゲーム、再戦は ENDED 後に新規作成(別 UUID)
+- **Request**
+  - Headers: `X-Player-Id: string`
+  - Body: なし
+- **Response**
+  - 200: `{ id: string }` — 既存ホスト中ルームを返却
+  - 201: `{ id: string }` — 新規発行
+  - 401: `X-Player-Id` 欠落
 
 ### GET /rooms/:id
 
