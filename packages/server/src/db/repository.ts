@@ -19,19 +19,6 @@ import {
   type NewRoomPlayerRow,
 } from "./schema.js"
 
-// passphrase → rooms.id (UUID) を解決(無ければ null)
-export async function resolveRoomIdByPassphrase(
-  tx: Tx,
-  passphrase: string,
-): Promise<string | null> {
-  const [row] = await tx
-    .select({ id: rooms.id })
-    .from(rooms)
-    .where(eq(rooms.passphrase, passphrase))
-    .limit(1)
-  return row?.id ?? null
-}
-
 export async function loadRoomState(tx: Tx, roomId: string): Promise<GameState | null> {
   const [roomRow] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).limit(1)
   if (!roomRow) return null
