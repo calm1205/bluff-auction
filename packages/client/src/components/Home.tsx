@@ -25,9 +25,9 @@ export function Home() {
     setCreating(true)
     setError(null)
     try {
-      const { passphrase } = await api.createRoom()
-      connectSocket(passphrase)
-      setRoomId(passphrase)
+      const { id } = await api.createRoom()
+      connectSocket(id)
+      setRoomId(id)
     } catch (e) {
       setError(`ルーム作成失敗: ${(e as Error).message}`)
     } finally {
