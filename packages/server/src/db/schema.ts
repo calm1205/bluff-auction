@@ -2,7 +2,6 @@ import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-
 
 export const rooms = pgTable("rooms", {
   id: text("id").primaryKey(),
-  passphrase: text("passphrase").notNull().unique(),
   phase: text("phase").notNull().default("lobby"),
   turnIndex: integer("turn_index").notNull().default(0),
   turnOrder: text("turn_order").array().notNull().default([]),
