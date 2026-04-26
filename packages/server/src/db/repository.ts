@@ -99,6 +99,7 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     currentAuction,
     winnerId: roomRow.winnerId,
     turnOrder: roomRow.turnOrder as PlayerId[],
+    hostPlayerId: roomRow.hostPlayerId,
   }
 }
 
