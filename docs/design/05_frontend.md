@@ -76,11 +76,11 @@ stateDiagram-v2
 
 ### ルームIDについて
 
-- 4 文字の英数字(混同しやすい `0` `O` `1` `I` `L` を除外、30 種から)
-- ルーム作成時にサーバーが生成、`POST /rooms` レスポンスの `id` で返却
-- クライアント入力は大文字小文字を区別しない(サーバー側で uppercase に正規化)
-- ENDED ルームのルームIDは再利用しない(レコード保持のため)
-- 仕様詳細は [02_data_model.md#ルームIDroomsid](./02_data_model.md#ルームIDroomsid)、API は [04_api.md](./04_api.md#ルームの識別子ルームIDについて)
+- UUID(ハイフンなし 32 文字 hex)、`shared/uuid.ts` の `generateUuid()` で生成
+- ルーム作成時にサーバーが発行、`POST /rooms` レスポンスの `id` で返却
+- 8 文字 × 4 ブロックで等幅表示し、共有・コピー対象として扱う
+- クライアント入力は大文字小文字を区別しない(サーバー側で lowercase に正規化)
+- 仕様詳細は [02_data_model.md#uuid-形式](./02_data_model.md#uuid-形式)、API は [04_api.md](./04_api.md#ルームの識別子について)
 
 ---
 
