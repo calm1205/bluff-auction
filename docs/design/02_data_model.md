@@ -18,6 +18,7 @@ erDiagram
         text phase
         integer turn_index "turn_order の現在位置"
         text_array turn_order "時計回りのPlayerId順"
+        text host_player_id "nullable (FK players.id 論理参照)"
         text winner_id "nullable"
         timestamptz updated_at
     }
