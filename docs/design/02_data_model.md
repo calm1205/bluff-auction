@@ -72,7 +72,7 @@ erDiagram
 - `rooms.host_player_id` はルーム主催者(host)を識別。最初にルーム参加した player を設定し、以降不変。「ゲーム開始」操作の権限判定に使用(詳細は [04_api.md](./04_api.md))
 - `players` は身元マスター(id PK / name / created_at)。プレイヤー登録(`POST /players`)で行を作成
 - `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)。host / guest の区別は `rooms.host_player_id` で表現するため列を持たない
-- `players.id` はクライアント生成 UUID(localStorage 保持)= `PlayerId`
+- `players.id` はクライアント生成 UUID(localStorage 保持)= `PlayerId`。**形式はハイフンなし 32 文字 hex(小文字)で統一**(下記「UUID 形式」参照)
 - `auctions` は `room_id` が PK のため1ルーム同時1件
 - `auction_actions` は進行中の競りの**時系列履歴**(bid と pass)を保持。`(room_id, seq)` 複合PK、`seq` はルーム内 1 始まりの連番(アプリ側採番)
   - `action_type = bid` → `amount` 必須
