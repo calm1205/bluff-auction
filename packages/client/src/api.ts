@@ -64,10 +64,9 @@ export async function createRoom(): Promise<{ id: string }> {
   return res.json()
 }
 
-export async function joinRoom(roomId: string, name: string): Promise<void> {
+export async function joinRoom(roomId: string): Promise<void> {
   await request(`/rooms/${encodeURIComponent(roomId)}/players`, {
     method: "POST",
-    body: JSON.stringify({ name }),
   })
 }
 
