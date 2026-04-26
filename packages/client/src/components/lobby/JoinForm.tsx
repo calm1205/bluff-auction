@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { useStore } from "../store.js"
-import { connectSocket } from "../socket.js"
+import { useStore } from "../../store.js"
+import { connectSocket } from "../../socket.js"
 import {
   ACCENT_BLUE,
   ACCENT_RED,
@@ -14,7 +14,7 @@ import {
   SBox,
   SBtn,
   ScreenFrame,
-} from "../sketch/index.js"
+} from "../../sketch/index.js"
 
 const UUID_LENGTH = 32
 const UUID_REGEX = /^[0-9a-f]{32}$/

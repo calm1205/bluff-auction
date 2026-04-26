@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { generateUuid } from "@bluff-auction/shared"
-import * as api from "../api.js"
-import { setStoredPlayerId } from "../utils/playerId.js"
+import * as api from "../../api.js"
+import { setStoredPlayerId } from "../../utils/playerId.js"
 import {
   ACCENT_RED,
   FONT_BODY,
@@ -12,7 +12,7 @@ import {
   PAPER,
   SBtn,
   ScreenFrame,
-} from "../sketch/index.js"
+} from "../../sketch/index.js"
 
 type Props = {
   initialError?: string | null

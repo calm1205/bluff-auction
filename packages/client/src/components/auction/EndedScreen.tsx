@@ -1,6 +1,6 @@
-import { useStore } from "../store.js"
-import { connectSocket, disconnectSocket } from "../socket.js"
-import * as api from "../api.js"
+import { useStore } from "../../store.js"
+import { connectSocket, disconnectSocket } from "../../socket.js"
+import * as api from "../../api.js"
 
 export function EndedScreen() {
   const view = useStore((s) => s.view)

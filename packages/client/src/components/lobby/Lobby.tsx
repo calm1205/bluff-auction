@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useStore } from "../store.js"
+import { useStore } from "../../store.js"
 import { NUM_PLAYERS } from "@bluff-auction/shared"
-import { disconnectSocket } from "../socket.js"
-import * as api from "../api.js"
+import { disconnectSocket } from "../../socket.js"
+import * as api from "../../api.js"
 import {
   ACCENT_BLUE,
   ACCENT_GREEN,
@@ -18,7 +18,7 @@ import {
   ScreenFrame,
   Seat,
   type SeatData,
-} from "../sketch/index.js"
+} from "../../sketch/index.js"
 
 export function Lobby() {
   const view = useStore((s) => s.view)
