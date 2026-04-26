@@ -45,6 +45,13 @@ export async function getMyPlayer(): Promise<MyPlayer> {
   return res.json()
 }
 
+export async function registerPlayer(id: string, name: string): Promise<void> {
+  await request("/players", {
+    method: "POST",
+    body: JSON.stringify({ id, name }),
+  })
+}
+
 export type RoomSummary = { id: string; phase: string; playerCount: number }
 
 export async function listRooms(): Promise<RoomSummary[]> {
