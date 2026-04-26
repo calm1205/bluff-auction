@@ -54,6 +54,7 @@ export async function loadRoomState(tx: Tx, roomId: string): Promise<GameState |
       fakesUsed: rp.fakesUsed,
       passed: rp.passed,
       online: rp.online,
+      isCpu: rp.isCpu,
     }
   })
 
@@ -120,6 +121,7 @@ export async function saveRoomState(tx: Tx, state: GameState, roomId: string): P
       fakesUsed: p.fakesUsed,
       passed: p.passed,
       online: p.online,
+      isCpu: p.isCpu,
       seatIndex: index,
     }))
     await tx.insert(roomPlayers).values(roomPlayerRows)

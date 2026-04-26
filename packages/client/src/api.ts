@@ -76,3 +76,16 @@ export async function startGame(roomId: string): Promise<void> {
     method: "POST",
   })
 }
+
+export type AddCpuResult = { added: string[] }
+
+export async function addCpuPlayers(
+  roomId: string,
+  body: { count?: number; fill?: boolean } = {},
+): Promise<AddCpuResult> {
+  const res = await request(`/rooms/${encodeURIComponent(roomId)}/cpu-players`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
+  return res.json()
+}

@@ -84,6 +84,7 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
     fakesUsed: 0,
     passed: false,
     online: true,
+    isCpu: false,
   })
 
   // 初参加者をホストに確定(以降不変)
@@ -94,9 +95,31 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
   return ok([{ type: "view-update" }])
 }
 
+// CPU プレイヤーを 1 体追加。playerId は呼び出し側で UUID を生成して渡す
+export function addCpuPlayer(state: GameState, id: PlayerId, name: string): EngineResult {
+  if (state.phase !== "lobby") return err("not-lobby", "ゲーム進行中は CPU 追加不可")
+  if (state.players.length >= NUM_PLAYERS) return err("full", "定員到達")
+  if (state.players.some((p) => p.id === id)) return err("duplicate", "ID 重複")
+
+  state.players.push({
+    id,
+    name,
+    brand: BRANDS[0]!,
+    hand: [],
+    cash: 0,
+    fakesUsed: 0,
+    passed: false,
+    online: true,
+    isCpu: true,
+  })
+  return ok([{ type: "view-update" }])
+}
+
 export function markOffline(state: GameState, id: PlayerId): EngineResult {
   const player = state.players.find((p) => p.id === id)
   if (!player) return ok([])
+  // CPU はクライアント接続を持たないため切断対象外
+  if (player.isCpu) return ok([])
 
   // ロビー中は即離脱(他の人が参加できるように)
   if (state.phase === "lobby") {
@@ -286,4 +309,64 @@ function settleAuction(state: GameState): EngineResult {
   state.phase = "listing"
   events.push({ type: "view-update" })
   return ok(events)
+}
+
+function pickRandom<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]!
+}
+
+// 現在のターン担当の CPU が存在すれば、その CPU の playerId を返す
+export function findActiveCpu(state: GameState): Player | null {
+  if (state.phase !== "listing" && state.phase !== "bidding") return null
+  if (state.turnOrder.length === 0) return null
+  if (state.phase === "listing") {
+    const sellerId = state.turnOrder[state.turnIndex]
+    if (!sellerId) return null
+    const seller = getPlayer(state, sellerId)
+    return seller && seller.isCpu ? seller : null
+  }
+  // bidding: 出品者以外で未パス・所持金あり・CPU を順に検索
+  const auction = state.currentAuction
+  if (!auction) return null
+  for (const p of state.players) {
+    if (!p.isCpu) continue
+    if (p.id === auction.sellerId) continue
+    if (auction.passedPlayerIds.includes(p.id)) continue
+    return p
+  }
+  return null
+}
+
+// CPU が現在のフェーズに対して取るべき 1 アクションを実行する。
+// state を直接更新し、発生した EngineEvent を返す。
+// 呼び出し側はループで findActiveCpu と組み合わせて使う想定。
+export function cpuActOnce(state: GameState): EngineResult {
+  const cpu = findActiveCpu(state)
+  if (!cpu) return ok([])
+
+  if (state.phase === "listing") {
+    if (cpu.hand.length === 0) return err("cpu-no-hand", "CPU 手札が空")
+    const card = pickRandom(cpu.hand)
+    const fakeRemaining = MAX_FAKES_PER_PLAYER - cpu.fakesUsed
+    const allowedBrands = fakeRemaining > 0 ? BRANDS : ([cpu.brand] as readonly Brand[])
+    const declaredBrand = pickRandom(allowedBrands)
+    // 開始額: 0..min(10, cash) の小さめのランダム値
+    const cap = Math.min(10, cpu.cash)
+    const startingBid = cap > 0 ? Math.floor(Math.random() * (cap + 1)) : 0
+    return listCard(state, cpu.id, card.id, declaredBrand, startingBid)
+  }
+
+  if (state.phase === "bidding") {
+    const auction = state.currentAuction!
+    const minAmount =
+      auction.highestBidderId === null ? auction.startingBid : auction.currentBid + 1
+    // 所持金不足は必ず pass
+    if (minAmount > cpu.cash) return pass(state, cpu.id)
+    // 60% で最低額に上乗せ、40% で pass
+    const willBid = Math.random() < 0.6
+    if (!willBid) return pass(state, cpu.id)
+    return bid(state, cpu.id, minAmount)
+  }
+
+  return ok([])
 }

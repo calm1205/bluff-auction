@@ -11,6 +11,8 @@ import type {
 } from "@bluff-auction/shared"
 import {
   bid,
+  cpuActOnce,
+  findActiveCpu,
   listCard,
   markOffline,
   pass,
@@ -116,9 +118,43 @@ async function main() {
     dispatchEvents(events, state, roomId)
   }
 
+  // 現手番が CPU の場合に自動進行(setTimeout で軽くディレイ)
+  // すでにスケジュール済みのループとの多重実行を避けるためルーム単位でフラグ管理
+  const cpuLoopRunning = new Set<string>()
+  function scheduleCpuTurn(roomId: string): void {
+    if (cpuLoopRunning.has(roomId)) return
+    cpuLoopRunning.add(roomId)
+    setTimeout(() => {
+      cpuLoopRunning.delete(roomId)
+      void runCpuTurn(roomId)
+    }, 600)
+  }
+  async function runCpuTurn(roomId: string): Promise<void> {
+    try {
+      const result = await withTx(async (tx) => {
+        const s = await loadRoomState(tx, roomId)
+        if (!s) return null
+        if (!findActiveCpu(s)) return null
+        const res = cpuActOnce(s)
+        if (res.ok) await saveRoomState(tx, s, roomId)
+        return { result: res, state: s }
+      })
+      if (!result) return
+      if (result.result.ok) {
+        dispatchEvents(result.result.events, result.state, roomId)
+        // 次の手番もまた CPU なら続けて発火
+        if (findActiveCpu(result.state)) scheduleCpuTurn(roomId)
+      } else {
+        console.error("[server] cpu act error", result.result.code, result.result.message)
+      }
+    } catch (e) {
+      console.error("[server] cpu turn error", e)
+    }
+  }
+
   // REST ルート
   await registerPlayerRoutes(app)
-  await registerRoomRoutes(app, { broadcastViews, dispatchEngineEvents })
+  await registerRoomRoutes(app, { broadcastViews, dispatchEngineEvents, scheduleCpuTurn })
 
   function ackFromResult(result: EngineResult): AckResponse {
     return result.ok ? { ok: true } : { ok: false, code: result.code, message: result.message }
@@ -184,7 +220,10 @@ async function main() {
           ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
           return
         }
-        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        if (result.result.ok) {
+          dispatchEvents(result.result.events, result.state, roomId)
+          scheduleCpuTurn(roomId)
+        }
         ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] list-card error", e)
@@ -205,7 +244,10 @@ async function main() {
           ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
           return
         }
-        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        if (result.result.ok) {
+          dispatchEvents(result.result.events, result.state, roomId)
+          scheduleCpuTurn(roomId)
+        }
         ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] bid error", e)
@@ -226,7 +268,10 @@ async function main() {
           ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
           return
         }
-        if (result.result.ok) dispatchEvents(result.result.events, result.state, roomId)
+        if (result.result.ok) {
+          dispatchEvents(result.result.events, result.state, roomId)
+          scheduleCpuTurn(roomId)
+        }
         ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] pass error", e)

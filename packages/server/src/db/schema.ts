@@ -32,6 +32,7 @@ export const roomPlayers = pgTable(
     fakesUsed: integer("fakes_used").notNull().default(0),
     passed: boolean("passed").notNull().default(false),
     online: boolean("online").notNull().default(true),
+    isCpu: boolean("is_cpu").notNull().default(false),
     seatIndex: integer("seat_index").notNull(),
   },
   (table) => ({
