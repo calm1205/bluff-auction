@@ -9,25 +9,26 @@
 
 ## 画面構成
 
-### ユーザー名登録画面(初回アクセス時・整合不一致時)
+### プレイヤー登録画面(初回アクセス時・整合不一致時)
 
 - 表示条件: 以下いずれか
   - localStorage の `bluff-auction.playerId` が未保存
-  - アプリ起動時の `GET /players/me` 検証で 404 が返り、過去の参加履歴がない
+  - アプリ起動時の `GET /players/me` 検証で 404 が返り、`players` テーブルに該当 UUID なし
 - 名前入力フィールド(1文字以上、自由入力・重複可)
 - 「開始」ボタン押下で:
-  - UUID を生成して `bluff-auction.playerId` へ保存(サーバー呼び出しなし)
-  - 表示名を Zustand store へ反映してルーム一覧画面へ遷移
-  - 名前は最初のルーム参加時に `POST /rooms/:id/players` 経由で DB(`players.name`)へ永続化
+  - UUID を生成
+  - `POST /players` で `{ id, name }` をサーバー登録(`players` テーブルへ INSERT)
+  - 201 成功後に `bluff-auction.playerId` へ保存、表示名を Zustand store へ反映してルーム一覧画面へ遷移
+  - 失敗時は localStorage を更新せずエラー表示
 - 以降の起動は下記「起動時の整合性チェック」を通過した場合のみこの画面をスキップ
 
 ### 起動時の整合性チェック
 
 - アプリマウント直後、localStorage に `bluff-auction.playerId` がある場合は `GET /players/me` で検証
   - 200: 返却された `name` を Zustand store の `userName` に反映し、そのままルーム一覧画面へ
-  - 404(過去の参加履歴なし): ユーザー名登録画面へ遷移(UUID は保持したまま名前だけ再入力)
+  - 404(`players` テーブルに該当 UUID なし): localStorage の `bluff-auction.playerId` を削除して登録画面へリダイレクト
   - ネットワークエラー: 登録画面へは遷移せず、エラー表示 + 再試行可能に
-- 目的: DB リセット・別環境接続・手動削除などで ID が失効した際に再入力を促す
+- 目的: DB リセット・別環境接続・手動削除などで UUID が失効した際の不整合を解消
 
 ### ルーム一覧画面(ルーム未選択時)
 
