@@ -19,6 +19,7 @@
     "format:check": "oxfmt --check packages"
   },
   "devDependencies": {
+    "drizzle-orm": "^0.45.2",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "typescript": "^5.4.0"
