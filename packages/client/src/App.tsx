@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react"
 import { socket } from "./socket.js"
 import { useStore } from "./store.js"
-import { Lobby } from "./components/Lobby.js"
-import { GameBoard } from "./components/GameBoard.js"
-import { Home } from "./components/Home.js"
-import { JoinForm } from "./components/JoinForm.js"
-import { NameRegister } from "./components/NameRegister.js"
+import { Lobby } from "./components/lobby/Lobby.js"
+import { AuctionBoard } from "./components/auction/AuctionBoard.js"
+import { Home } from "./components/lobby/Home.js"
+import { JoinForm } from "./components/lobby/JoinForm.js"
+import { NameRegister } from "./components/lobby/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
-import { EndedScreen } from "./components/EndedScreen.js"
+import { EndedScreen } from "./components/auction/EndedScreen.js"
 import { Rules } from "./components/rules/Rules.js"
 import { RulesLauncher } from "./components/RulesLauncher.js"
 import * as api from "./api.js"
@@ -129,7 +129,7 @@ export function App() {
   ) : view?.phase === "lobby" || !view ? (
     <Lobby />
   ) : (
-    <GameBoard />
+    <AuctionBoard />
   )
 
   return (

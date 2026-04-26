@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { useStore } from "../store.js"
-import { connectSocket } from "../socket.js"
-import * as api from "../api.js"
+import { useStore } from "../../store.js"
+import { connectSocket } from "../../socket.js"
+import * as api from "../../api.js"
 import {
   ACCENT_RED,
   FONT_BODY,
@@ -13,7 +13,7 @@ import {
   SBox,
   ScreenFrame,
   Gavel,
-} from "../sketch/index.js"
+} from "../../sketch/index.js"
 
 export function Home() {
   const setRoomId = useStore((s) => s.setRoomId)

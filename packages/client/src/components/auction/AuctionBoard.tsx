@@ -1,18 +1,25 @@
-import { useStore } from "../store.js"
+import { useStore } from "../../store.js"
 import { BRAND_LABELS } from "@bluff-auction/shared"
-import { ACCENT_GOLD, CardFace, FONT_BODY, FONT_MONO, FONT_SERIF, PAPER } from "../sketch/index.js"
-import { OpponentStrip } from "./game/OpponentStrip.js"
-import { MyStatsBar } from "./game/MyStatsBar.js"
-import { DeclarationBanner } from "./game/DeclarationBanner.js"
-import { CurrentBidDisplay } from "./game/CurrentBidDisplay.js"
-import { AuctionCardArt } from "./game/AuctionCardArt.js"
-import { SellerSheet } from "./auction/SellerSheet.js"
-import { BidSheet } from "./auction/BidSheet.js"
+import {
+  ACCENT_GOLD,
+  CardFace,
+  FONT_BODY,
+  FONT_MONO,
+  FONT_SERIF,
+  PAPER,
+} from "../../sketch/index.js"
+import { OpponentStrip } from "./OpponentStrip.js"
+import { MyStatsBar } from "./MyStatsBar.js"
+import { DeclarationBanner } from "./DeclarationBanner.js"
+import { CurrentBidDisplay } from "./CurrentBidDisplay.js"
+import { AuctionCardArt } from "./AuctionCardArt.js"
+import { SellerSheet } from "./SellerSheet.js"
+import { BidSheet } from "./BidSheet.js"
 
 const THEATER_BG = "#120e0c"
 
 // V3 Theater: ダーク背景 + spotlight + 上 OpponentStrip + 中央演出 + 下 MyStats + 文脈別 sheet
-export function GameBoard() {
+export function AuctionBoard() {
   const view = useStore((s) => s.view)
   const lastRevealed = useStore((s) => s.lastRevealed)
 
