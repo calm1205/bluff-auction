@@ -162,7 +162,8 @@ sequenceDiagram
             DB-->>S: { name }
             S->>DB: INSERT INTO room_players (room_id, player_id, ...)
             S-->>B: 204 No Content
-        S->>S: Socket.IO で view-update ブロードキャスト
+            S->>S: Socket.IO で view-update ブロードキャスト
+        end
     end
 ```
 
