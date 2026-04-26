@@ -1,5 +1,6 @@
 import type { Brand, Card, Player } from "./types.js"
 import { BRANDS } from "./constants.js"
+import { generateUuid } from "./uuid.js"
 
 export function hasFullSet(player: Pick<Player, "hand">): boolean {
   const brands = new Set<Brand>()
@@ -14,9 +15,10 @@ export function ownedBrands(player: Pick<Player, "hand">): Set<Brand> {
 }
 
 export function buildInitialDeck(playerBrands: Brand[], cardsPerBrand: number): Card[][] {
-  return playerBrands.map((brand, i) =>
-    Array.from({ length: cardsPerBrand }, (_, k) => ({
-      id: `${brand}-${i}-${k}`,
+  // カード ID は UUID(ハイフンなし 32 文字 hex)。意味的な情報(brand)は別カラムで保持
+  return playerBrands.map((brand) =>
+    Array.from({ length: cardsPerBrand }, () => ({
+      id: generateUuid(),
       brand,
     })),
   )
