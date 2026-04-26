@@ -132,7 +132,7 @@ export function App() {
   return (
     <>
       <UserBadge name={userName ?? ""} />
-      <div style={{ paddingTop: 32 }}>{screen}</div>
+      {screen}
     </>
   )
 }
