@@ -26,6 +26,7 @@ export function Lobby() {
   const leaveRoom = useStore((s) => s.leaveRoom)
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const attemptedRef = useRef(false)
 
   const alreadyJoined = view?.self != null
@@ -145,22 +146,43 @@ export function Lobby() {
 
       <div style={{ textAlign: "center", marginTop: 22 }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT }}>ルームID</div>
-        <div style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(roomId)
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 1500)
+            } catch {
+              // clipboard 拒否時はフィードバックなし(モバイル HTTP では失敗することがある)
+            }
+          }}
+          aria-label="ルーム ID をコピー"
+          style={{
+            all: "unset",
+            cursor: "pointer",
+            display: "inline-block",
+            marginTop: 8,
+          }}
+        >
           <RoomIdDisplay value={roomId} size="lg" muted={allReady} />
+        </button>
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontSize: 12,
+            marginTop: 8,
+            fontWeight: 600,
+            color: copied ? ACCENT_GREEN : isHost && !allReady ? ACCENT_RED : INK_SOFT,
+            minHeight: 18,
+          }}
+        >
+          {copied
+            ? "✓ コピーしました"
+            : isHost && !allReady
+              ? "⧉ タップでコピーして仲間に共有"
+              : null}
         </div>
-        {isHost && !allReady && (
-          <div
-            style={{
-              fontFamily: FONT_BODY,
-              fontSize: 12,
-              color: ACCENT_RED,
-              marginTop: 8,
-              fontWeight: 600,
-            }}
-          >
-            このルーム ID を仲間に伝えてください
-          </div>
-        )}
       </div>
 
       <div style={{ marginTop: 24 }}>
