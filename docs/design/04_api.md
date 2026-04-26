@@ -54,8 +54,7 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `unauthorized` | REST | `X-Player-Id` 欠落 |
 | `not-host` | POST /rooms/:id/start | ホスト以外がゲーム開始操作 |
 | `not-found` | GET /rooms/:id, POST /rooms/:id/players, GET /players/me | ルーム / プレイヤー未登録 |
-| `bad-passphrase` | rooms 系全般 | 合言葉の形式不正(4文字 / 許可外文字) |
-| `passphrase-exhausted` | POST /rooms | 合言葉生成の衝突再試行が上限超過 |
+| `bad-room-id` | rooms 系全般 | ルーム ID(UUID)の形式不正 |
 | `player-exists` | POST /players | `id` 既登録 |
 | `db-error` | 共通 | DB 例外 |
 
