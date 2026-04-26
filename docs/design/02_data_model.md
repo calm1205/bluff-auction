@@ -69,7 +69,10 @@ erDiagram
 
 補足:
 
-- `rooms.id` は **合言葉**(4 文字)。詳細は下記「合言葉(rooms.id)」
+- `rooms.id` は UUID(ハイフンなし 32 文字 hex)、`rooms.passphrase` がユーザー向け **合言葉**(4 文字、unique)
+  - 全 FK(`room_players.room_id` 等)は `rooms.id`(UUID)を参照
+  - クライアントは合言葉のみ知り、URL / Socket.IO の `auth.roomId` も合言葉。サーバーが内部で UUID に解決
+  - 合言葉の詳細仕様は下記「合言葉(rooms.passphrase)」
 - `rooms.host_player_id` はルーム主催者(host)を識別。最初にルーム参加した player を設定し、以降不変。「ゲーム開始」操作の権限判定に使用(詳細は [04_api.md](./04_api.md))
 - `players` は身元マスター(id PK / name / created_at)。プレイヤー登録(`POST /players`)で行を作成
 - `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)。host / guest の区別は `rooms.host_player_id` で表現するため列を持たない
