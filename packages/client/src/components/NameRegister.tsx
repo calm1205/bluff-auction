@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { generateUuid } from "@bluff-auction/shared"
 import * as api from "../api.js"
 import { setStoredPlayerId } from "../utils/playerId.js"
 
@@ -21,7 +22,7 @@ export function NameRegister({ initialError, onRegistered }: Props) {
     setSubmitting(true)
     setError(null)
     try {
-      const id = crypto.randomUUID()
+      const id = generateUuid()
       await api.registerPlayer(id, trimmed)
       // サーバー側で永続化に成功してから localStorage に保存
       setStoredPlayerId(id)
