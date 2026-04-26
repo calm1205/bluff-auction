@@ -147,11 +147,12 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 
 ### POST /rooms/:id/start
 
-- **概要**: ゲーム開始。4人揃った状態で「開始」ボタンから呼び出し、成功後は `view-update` が全員へブロードキャストされ LISTING へ遷移
+- **概要**: ゲーム開始。**ホストのみ操作可**。4人揃った状態で「開始」ボタンから呼び出し、成功後は `view-update` が全員へブロードキャストされ LISTING へ遷移
 - **Request**
   - Params: `id: string`(合言葉)
   - Headers: `X-Player-Id: string`
 - **Response**
   - 204: 成功
-  - 400: `{ code: "not-lobby" | "not-ready", message }` — ロビー外 / 4人未満
+  - 400: `{ code: "not-lobby" \| "not-ready", message }` — ロビー外 / 4人未満
   - 401: `X-Player-Id` 欠落
+  - 403: `{ code: "not-host", message }` — `X-Player-Id` が `rooms.host_player_id` と不一致
