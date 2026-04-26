@@ -64,7 +64,13 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "rooms_passphrase_unique": {
+          "name": "rooms_passphrase_unique",
+          "nullsNotDistinct": false,
+          "columns": ["passphrase"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
