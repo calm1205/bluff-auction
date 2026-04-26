@@ -25,7 +25,7 @@ erDiagram
         timestamptz updated_at
     }
     players {
-        text id PK "PlayerId (UUID, クライアント生成)"
+        text id PK "PlayerId (UUID, ハイフンなし 32 文字 hex)"
         text name
         timestamptz created_at
     }
