@@ -15,8 +15,9 @@ lint: ## oxlint --fix
 db-gen: ## schema から新規マイグレーション SQL を生成
 	npm run db:generate --workspace=@bluff-auction/server
 
-db-migrate: ## マイグレーションを DB に適用
-	npm run db:migrate --workspace=@bluff-auction/server
+db-migrate: ## マイグレーションを DB に適用(host から実行: postgres ホスト名を localhost に置換)
+	DATABASE_URL=$(subst @postgres:,@localhost:,$(DATABASE_URL)) \
+		npm run db:migrate --workspace=@bluff-auction/server
 
 db-reset: ## RDB の全テーブルを TRUNCATE(スキーマは保持)
 	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
