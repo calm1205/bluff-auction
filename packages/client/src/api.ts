@@ -52,7 +52,9 @@ export async function registerPlayer(id: string, name: string): Promise<void> {
   })
 }
 
-export async function createRoom(): Promise<{ id: string }> {
+export type CreatedRoom = { id: string; passphrase: string }
+
+export async function createRoom(): Promise<CreatedRoom> {
   const res = await request("/rooms", { method: "POST" })
   return res.json()
 }
