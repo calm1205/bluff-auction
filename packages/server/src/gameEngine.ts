@@ -56,6 +56,7 @@ export function createInitialState(): GameState {
     currentAuction: null,
     winnerId: null,
     turnOrder: [],
+    hostPlayerId: null,
   }
 }
 
@@ -84,6 +85,12 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): EngineR
     passed: false,
     online: true,
   })
+
+  // 初参加者をホストに確定(以降不変)
+  if (state.hostPlayerId === null) {
+    state.hostPlayerId = id
+  }
+
   return ok([{ type: "view-update" }])
 }
 
