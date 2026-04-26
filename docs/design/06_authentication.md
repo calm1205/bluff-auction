@@ -141,7 +141,7 @@ sequenceDiagram
     end
 ```
 
-### ルーム参加フロー(合言葉経由)
+### ルーム参加フロー(合言葉経由 + ホスト確定)
 
 ```mermaid
 sequenceDiagram
@@ -161,9 +161,32 @@ sequenceDiagram
         else あり
             DB-->>S: { name }
             S->>DB: INSERT INTO room_players (room_id, player_id, ...)
+            opt rooms.host_player_id IS NULL
+                S->>DB: UPDATE rooms SET host_player_id = <player_id>
+                Note over S,DB: 初参加者をホストに確定(以降不変)
+            end
             S-->>B: 204 No Content
             S->>S: Socket.IO で view-update ブロードキャスト
         end
+    end
+```
+
+### ホスト権限チェック(ゲーム開始)
+
+```mermaid
+sequenceDiagram
+    participant B as ブラウザ
+    participant S as サーバー
+    participant DB as Postgres
+
+    B->>S: POST /rooms/:passphrase/start<br/>X-Player-Id
+    S->>DB: SELECT host_player_id FROM rooms WHERE id = <PASSPHRASE>
+    alt host_player_id ≠ X-Player-Id
+        S-->>B: 403 not-host
+    else 一致
+        S->>S: 4人揃い等の検証 → ゲーム初期化
+        S-->>B: 204
+        S->>S: view-update を全員へブロードキャスト
     end
 ```
 
