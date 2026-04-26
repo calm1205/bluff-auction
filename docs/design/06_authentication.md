@@ -150,8 +150,8 @@ sequenceDiagram
     participant S as サーバー
     participant DB as Postgres
 
-    B->>S: POST /rooms/:passphrase/players<br/>X-Player-Id(ボディなし)
-    S->>S: passphrase を uppercase 正規化
+    B->>S: POST /rooms/:id/players<br/>X-Player-Id(ボディなし)
+    S->>S: roomId を lowercase 正規化 + UUID 形式検証
     S->>DB: SELECT * FROM rooms WHERE id = <PASSPHRASE>
     alt rooms 行なし
         S-->>B: 404 not-found
