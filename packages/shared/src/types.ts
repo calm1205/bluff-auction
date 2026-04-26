@@ -41,6 +41,7 @@ export type GameState = {
   currentAuction: Auction | null
   winnerId: PlayerId | null
   turnOrder: PlayerId[]
+  hostPlayerId: PlayerId | null
 }
 
 export type PublicPlayerView = {
