@@ -57,11 +57,25 @@ erDiagram
 
 補足:
 
+- `rooms.id` は **合言葉**(4 文字)。詳細は下記「合言葉(rooms.id)」
 - `players` は身元マスター(id PK / name / created_at)。プレイヤー登録(`POST /players`)で行を作成
 - `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)
 - `players.id` はクライアント生成 UUID(localStorage 保持)= `PlayerId`
 - `auctions` は `room_id` が PK のため1ルーム同時1件
 - `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `room_players.player_id` 参照だが DB FK は未張り(アプリ側整合性)
+
+## 合言葉(rooms.id)
+
+ルームを一意に特定する人間入力用の文字列。`rooms.id` の値そのものとして格納する(別カラムは持たない)。
+
+- **長さ**: 4 文字
+- **文字種**: 大文字英字 + 数字、ただし混同しやすい `0` `O` `1` `I` `L` を除外 → 30 種
+  - 採用文字集合: `23456789ABCDEFGHJKMNPQRSTUVWXYZ`
+- **衝突空間**: 30^4 = 810,000(プロトタイプ用途に十分)
+- **生成**: サーバーがランダム生成し、`rooms.id` で重複チェック。衝突したら再生成(最大 N 回)
+- **正規化**: クライアント入力は大文字小文字を区別しない。サーバーで uppercase に正規化してから DB 照合
+- **ライフタイム**: ENDED ルームのレコードは削除しない方針のため、合言葉は再利用しない
+- **デフォルト値**: 旧スキーマで `rooms.id` に `default('default')` が残っているが新ルームは合言葉で上書きされ、デフォルト値は実質未使用
 
 ## 列挙値(`shared/types.ts`)
 
