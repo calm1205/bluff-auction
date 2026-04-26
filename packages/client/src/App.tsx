@@ -8,6 +8,8 @@ import { JoinForm } from "./components/JoinForm.js"
 import { NameRegister } from "./components/NameRegister.js"
 import { UserBadge } from "./components/UserBadge.js"
 import { EndedScreen } from "./components/EndedScreen.js"
+import { Rules } from "./components/Rules.js"
+import { RulesLink } from "./components/RulesLink.js"
 import * as api from "./api.js"
 import { clearPlayerStorage, getStoredPlayerId } from "./utils/playerId.js"
 
@@ -27,6 +29,7 @@ export function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>("loading")
   const [authError, setAuthError] = useState<string | null>(null)
   const [retryNonce, setRetryNonce] = useState(0)
+  const [showRules, setShowRules] = useState(false)
 
   // 起動時の整合性チェック
   useEffect(() => {
@@ -132,7 +135,44 @@ export function App() {
   return (
     <>
       <UserBadge name={userName ?? ""} />
-      {screen}
+      {showRules ? <Rules onClose={() => setShowRules(false)} /> : screen}
+      {!showRules && (
+        <RulesLauncher
+          onShow={() => setShowRules(true)}
+          variant={!roomId && lobbyMode === "idle" ? "pill" : "corner"}
+          hidden={Boolean(roomId) && view?.phase !== "lobby" && view?.phase !== undefined}
+        />
+      )}
     </>
+  )
+}
+
+function RulesLauncher({
+  onShow,
+  variant,
+  hidden,
+}: {
+  onShow: () => void
+  variant: "pill" | "corner"
+  hidden: boolean
+}) {
+  if (hidden) return null
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
+        zIndex: 40,
+        pointerEvents: "none",
+      }}
+    >
+      <div style={{ pointerEvents: "auto" }}>
+        <RulesLink variant={variant} onClick={onShow} />
+      </div>
+    </div>
   )
 }
