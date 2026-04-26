@@ -16,7 +16,8 @@ erDiagram
     room_players ||--o{ auction_actions : "actor(論理FK)"
 
     rooms {
-        text id PK "合言葉(4文字、後述)"
+        text id PK "UUID(ハイフンなし 32 文字 hex)"
+        text passphrase UK "合言葉(4文字、後述)"
         text phase
         integer turn_index "turn_order の現在位置"
         text_array turn_order "時計回りのPlayerId順"
