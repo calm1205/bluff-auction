@@ -59,7 +59,7 @@ sequenceDiagram
 主な分岐:
 
 - 既登録ユーザーの起動時整合性チェック(`GET /players/me`)→ 200 ならスキップ、404 なら登録画面
-- 合言葉衝突は最大 N 回再試行、超過すると 503 `passphrase-exhausted`
+- ルーム ID は UUID なので衝突は実質起こらない
 - 非ホストの `POST /rooms/:id/start` は 403 `not-host`
 - 4 人未満なら 400 `not-ready`
 
