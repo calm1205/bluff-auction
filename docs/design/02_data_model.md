@@ -56,6 +56,14 @@ erDiagram
         text highest_bidder_id "nullable"
         text_array passed_player_ids
     }
+    auction_actions {
+        text room_id PK "FK rooms.id"
+        integer seq PK "ルーム内の発生順"
+        text player_id "FK players.id 論理参照"
+        text action_type "bid|pass"
+        integer amount "nullable (action_type=bid のときのみ)"
+        timestamptz created_at
+    }
 ```
 
 補足:
