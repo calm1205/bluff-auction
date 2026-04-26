@@ -51,7 +51,9 @@ AckResponse / `error-event` / REST 400 系で返る `code`。
 | `too-low` | bid | 最低落札額未満 |
 | `no-cash` | bid | 所持金不足 |
 | `unauthorized` | REST | `X-Player-Id` 欠落 |
-| `not-found` | GET /rooms/:id, GET /players/me | ルーム / プレイヤー未登録 |
+| `not-found` | GET /rooms/:id, POST /rooms/:id/players, GET /players/me | ルーム / プレイヤー未登録 |
+| `bad-passphrase` | rooms 系全般 | 合言葉の形式不正(4文字 / 許可外文字) |
+| `passphrase-exhausted` | POST /rooms | 合言葉生成の衝突再試行が上限超過 |
 | `player-exists` | POST /players | `id` 既登録 |
 | `db-error` | 共通 | DB 例外 |
 
