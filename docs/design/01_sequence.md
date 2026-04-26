@@ -38,7 +38,7 @@ sequenceDiagram
     H->>Srv: connect (handshake)
     Srv-->>H: view-update
 
-    Note over G: 参加前画面で合言葉入力
+    Note over G: 参加前画面でルーム ID(UUID)入力
     G->>Srv: POST /rooms/PASS/players<br/>X-Player-Id: G
     Srv->>DB: SELECT room → SELECT name → INSERT room_players
     Srv-->>G: 204
