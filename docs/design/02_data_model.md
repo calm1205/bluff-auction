@@ -89,7 +89,7 @@ erDiagram
 
 - 例: `9f3c2a1b8d4e4a3f9b2c8d6e7f1a3b4c`(標準 v4 表記からハイフンを除去したもの)
 - 用途: `players.id` (= `PlayerId`、localStorage `bluff-auction.playerId` の値)
-- ルームの `rooms.id` は別仕様(4 文字合言葉、上記参照)、カードの `cards.id` は構造化文字列(`${brand}-${index}-${k}` を room スコープで namespace 化)で UUID ではない
+- ルームの `rooms.id` も同形式(上記参照)、カードの `cards.id` は構造化文字列(`${brand}-${index}-${k}` を room スコープで namespace 化)で UUID ではない
 - 生成は `shared/uuid.ts` の `generateUuid()` をクライアント・サーバー両方で利用
 
 ## 列挙値(`shared/types.ts`)
