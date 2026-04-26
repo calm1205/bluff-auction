@@ -113,6 +113,7 @@ stateDiagram-v2
 
 - phase 遷移は `view-update` イベントで即時反映(画面遷移なし、コンポーネント再レンダリング)
 - LISTING / BIDDING / TRANSACTION は同じレイアウト、中段の操作のみ切り替わる
+- 入札履歴 (`view.currentAuction.actionHistory`) は進行中オークション中のみ表示。落札 / 流札で `auctions` 行と共に消える(次オークションで空状態から再開)
 - 落札確定時 `auction-revealed` を落札者のみが受信し、`lastRevealed` に格納してハイライト表示
 
 ### E. 終了画面(phase = ENDED)
