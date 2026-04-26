@@ -62,20 +62,46 @@
       "name": "players",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.room_players": {
+      "name": "room_players",
+      "schema": "",
+      "columns": {
         "room_id": {
           "name": "room_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
+        "player_id": {
+          "name": "player_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -123,20 +149,29 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "players_room_id_rooms_id_fk": {
-          "name": "players_room_id_rooms_id_fk",
-          "tableFrom": "players",
+        "room_players_room_id_rooms_id_fk": {
+          "name": "room_players_room_id_rooms_id_fk",
+          "tableFrom": "room_players",
           "tableTo": "rooms",
           "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "room_players_player_id_players_id_fk": {
+          "name": "room_players_player_id_players_id_fk",
+          "tableFrom": "room_players",
+          "tableTo": "players",
+          "columnsFrom": ["player_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "players_room_id_id_pk": {
-          "name": "players_room_id_id_pk",
-          "columns": ["room_id", "id"]
+        "room_players_room_id_player_id_pk": {
+          "name": "room_players_room_id_player_id_pk",
+          "columns": ["room_id", "player_id"]
         }
       },
       "uniqueConstraints": {},
