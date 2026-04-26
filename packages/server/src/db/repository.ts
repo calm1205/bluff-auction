@@ -19,27 +19,22 @@ import {
   type NewRoomPlayerRow,
 } from "./schema.js"
 
-const DEFAULT_ROOM_ID = "default"
-
-function initialState(): GameState {
-  return {
-    phase: "lobby",
-    turnIndex: 0,
-    players: [],
-    currentAuction: null,
-    winnerId: null,
-    turnOrder: [],
-    hostPlayerId: null,
-  }
+// passphrase → rooms.id (UUID) を解決(無ければ null)
+export async function resolveRoomIdByPassphrase(
+  tx: Tx,
+  passphrase: string,
+): Promise<string | null> {
+  const [row] = await tx
+    .select({ id: rooms.id })
+    .from(rooms)
+    .where(eq(rooms.passphrase, passphrase))
+    .limit(1)
+  return row?.id ?? null
 }
 
-export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): Promise<GameState> {
+export async function loadRoomState(tx: Tx, roomId: string): Promise<GameState | null> {
   const [roomRow] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).limit(1)
-
-  if (!roomRow) {
-    await tx.insert(rooms).values({ id: roomId }).onConflictDoNothing()
-    return initialState()
-  }
+  if (!roomRow) return null
 
   const roomPlayerRows = await tx.select().from(roomPlayers).where(eq(roomPlayers.roomId, roomId))
   const cardRows = await tx.select().from(cards).where(eq(cards.roomId, roomId))
@@ -100,24 +95,19 @@ export async function loadRoomState(tx: Tx, roomId: string = DEFAULT_ROOM_ID): P
     winnerId: roomRow.winnerId,
     turnOrder: roomRow.turnOrder as PlayerId[],
     hostPlayerId: roomRow.hostPlayerId,
+    passphrase: roomRow.passphrase,
   }
 }
 
-export async function saveRoomState(
-  tx: Tx,
-  state: GameState,
-  roomId: string = DEFAULT_ROOM_ID,
-): Promise<void> {
-  // 依存順: auction → cards → room_players を削除してから room を upsert し、再挿入
-  // players マスターは別管理(POST /players で登録)、ここでは name の同期のみ upsert
+export async function saveRoomState(tx: Tx, state: GameState, roomId: string): Promise<void> {
+  // ルームは POST /rooms で事前作成済み前提。ここでは関連行をクリアしてから再構築 + rooms.* を更新
   await tx.delete(auctions).where(eq(auctions.roomId, roomId))
   await tx.delete(cards).where(eq(cards.roomId, roomId))
   await tx.delete(roomPlayers).where(eq(roomPlayers.roomId, roomId))
 
   await tx
-    .insert(rooms)
-    .values({
-      id: roomId,
+    .update(rooms)
+    .set({
       phase: state.phase,
       turnIndex: state.turnIndex,
       turnOrder: state.turnOrder,
@@ -125,17 +115,7 @@ export async function saveRoomState(
       hostPlayerId: state.hostPlayerId,
       updatedAt: new Date(),
     })
-    .onConflictDoUpdate({
-      target: rooms.id,
-      set: {
-        phase: state.phase,
-        turnIndex: state.turnIndex,
-        turnOrder: state.turnOrder,
-        winnerId: state.winnerId,
-        hostPlayerId: state.hostPlayerId,
-        updatedAt: new Date(),
-      },
-    })
+    .where(eq(rooms.id, roomId))
 
   if (state.players.length > 0) {
     // 既存プレイヤーが未登録の場合に備えて upsert(name は最新で上書き)
