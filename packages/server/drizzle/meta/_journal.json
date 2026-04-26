@@ -43,6 +43,13 @@
       "when": 1700000005000,
       "tag": "0005_split_players",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1700000006000,
+      "tag": "0006_room_host",
+      "breakpoints": true
     }
   ]
 }
