@@ -59,8 +59,9 @@ erDiagram
 補足:
 
 - `rooms.id` は **合言葉**(4 文字)。詳細は下記「合言葉(rooms.id)」
+- `rooms.host_player_id` はルーム主催者(host)を識別。最初にルーム参加した player を設定し、以降不変。「ゲーム開始」操作の権限判定に使用(詳細は [04_api.md](./04_api.md))
 - `players` は身元マスター(id PK / name / created_at)。プレイヤー登録(`POST /players`)で行を作成
-- `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)
+- `room_players` はルーム所属 + ルーム単位のゲーム状態。`(room_id, player_id)` 複合PK、`player_id` は `players.id` への FK(`onDelete: cascade`)。host / guest の区別は `rooms.host_player_id` で表現するため列を持たない
 - `players.id` はクライアント生成 UUID(localStorage 保持)= `PlayerId`
 - `auctions` は `room_id` が PK のため1ルーム同時1件
 - `cards.holder_id` / `auctions.seller_id` / `highest_bidder_id` は論理上 `room_players.player_id` 参照だが DB FK は未張り(アプリ側整合性)
