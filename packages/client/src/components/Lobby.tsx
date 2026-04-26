@@ -1,8 +1,24 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useStore } from "../store.js"
 import { NUM_PLAYERS } from "@bluff-auction/shared"
 import { disconnectSocket } from "../socket.js"
 import * as api from "../api.js"
+import {
+  ACCENT_BLUE,
+  ACCENT_GREEN,
+  ACCENT_RED,
+  FONT_BODY,
+  FONT_MONO,
+  INK,
+  INK_SOFT,
+  PAPER,
+  PassphraseDisplay,
+  SBox,
+  SBtn,
+  ScreenFrame,
+  Seat,
+  type SeatData,
+} from "../sketch/index.js"
 
 export function Lobby() {
   const view = useStore((s) => s.view)
@@ -15,9 +31,10 @@ export function Lobby() {
   const alreadyJoined = view?.self != null
   const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0
   const roomFull = playerCount >= NUM_PLAYERS
+  const allReady = playerCount === NUM_PLAYERS
   const isHost = view?.self != null && view.self.id === view.hostPlayerId
 
-  // view 受信後、自動で参加(名前は players マスターから取得されるためボディ送信不要)
+  // view 受信後、自動で参加(名前は players マスターから取得)
   useEffect(() => {
     if (!roomId || !view) return
     if (alreadyJoined || attemptedRef.current) return
@@ -27,11 +44,32 @@ export function Lobby() {
     setError(null)
     api
       .joinRoom(roomId)
-      .catch((e) => {
-        setError((e as Error).message)
-      })
+      .catch((e) => setError((e as Error).message))
       .finally(() => setJoining(false))
   }, [roomId, view, alreadyJoined, roomFull])
+
+  // 4 席ぶんを seat_index 順で構築(view.turnOrder は ゲーム開始まで空なので、self/others の組合せで埋める)
+  const seats: SeatData[] = useMemo(() => {
+    const out: SeatData[] = []
+    const ordered: { id: string; name: string; online: boolean }[] = []
+    if (view?.self) {
+      ordered.push({ id: view.self.id, name: view.self.name, online: view.self.online })
+    }
+    view?.others.forEach((o) => {
+      ordered.push({ id: o.id, name: o.name, online: o.online })
+    })
+    for (let i = 0; i < NUM_PLAYERS; i++) {
+      const p = ordered[i]
+      out.push({
+        index: i,
+        name: p?.name ?? null,
+        isHost: p ? p.id === view?.hostPlayerId : false,
+        isYou: p ? p.id === view?.self?.id : false,
+        online: p?.online ?? true,
+      })
+    }
+    return out
+  }, [view])
 
   if (!roomId) return null
 
@@ -48,71 +86,152 @@ export function Lobby() {
     leaveRoom()
   }
 
+  const startBtn = (() => {
+    if (!isHost) {
+      return (
+        <SBtn bg="rgba(26,23,21,0.15)" color={INK_SOFT} size="lg" disabled>
+          ホストの開始を待機中...
+        </SBtn>
+      )
+    }
+    if (allReady) {
+      return (
+        <SBtn bg={ACCENT_RED} color={PAPER} size="lg" onClick={handleStart}>
+          開始 →
+        </SBtn>
+      )
+    }
+    return (
+      <SBtn bg="rgba(26,23,21,0.15)" color={INK_SOFT} size="lg" disabled>
+        開始 (あと {NUM_PLAYERS - playerCount} 人)
+      </SBtn>
+    )
+  })()
+
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Bluff Auction</h1>
-      <button type="button" onClick={handleBack} style={{ marginBottom: 12, padding: 6 }}>
-        ← 退出
-      </button>
-
-      <h2>ロビー</h2>
-
+    <ScreenFrame>
       <div
         style={{
-          margin: "12px 0",
-          padding: 16,
-          background: "#f5f5f5",
-          borderRadius: 8,
-          maxWidth: 320,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <div style={{ fontSize: 12, color: "#666" }}>合言葉</div>
-        <div
+        <button
+          type="button"
+          onClick={handleBack}
           style={{
-            fontSize: 36,
-            letterSpacing: 8,
-            fontFamily: "monospace",
-            textAlign: "center",
-            marginTop: 4,
+            all: "unset",
+            cursor: "pointer",
+            fontFamily: FONT_BODY,
+            fontSize: 14,
+            fontWeight: 600,
           }}
         >
-          {roomId}
+          ← 退出
+        </button>
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            letterSpacing: 2,
+            color: allReady ? ACCENT_GREEN : INK_SOFT,
+            fontWeight: allReady ? 700 : 400,
+          }}
+        >
+          {allReady ? "● ALL READY" : isHost ? "WAITING" : "JOINED · WAITING"}
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: 22 }}>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT }}>合言葉</div>
+        <div style={{ marginTop: 8 }}>
+          <PassphraseDisplay value={roomId} size="lg" muted={allReady} />
+        </div>
+        {isHost && !allReady && (
+          <div
+            style={{
+              fontFamily: FONT_BODY,
+              fontSize: 12,
+              color: ACCENT_RED,
+              marginTop: 8,
+              fontWeight: 600,
+            }}
+          >
+            この合言葉を仲間に伝えてください
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <div style={{ fontFamily: FONT_BODY, fontSize: 15, fontWeight: 600 }}>
+            席 ({NUM_PLAYERS}人)
+          </div>
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 12,
+              color: allReady ? ACCENT_GREEN : INK_SOFT,
+              fontWeight: 700,
+            }}
+          >
+            {playerCount} / {NUM_PLAYERS}
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {seats.map((s) => (
+            <Seat key={s.index} seat={s} ready={allReady} />
+          ))}
         </div>
       </div>
 
       {!alreadyJoined && (
-        <div style={{ marginBottom: 12 }}>
-          {joining && <span>参加処理中...</span>}
-          {!joining && roomFull && <span style={{ color: "#c33" }}>満員のため参加できません</span>}
-          {!joining && error && <span style={{ color: "#c33" }}>参加失敗: {error}</span>}
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontSize: 12,
+            color: error ? ACCENT_RED : INK_SOFT,
+            marginTop: 14,
+            textAlign: "center",
+          }}
+        >
+          {joining && "参加処理中..."}
+          {!joining && roomFull && !error && "満員のため参加できません"}
+          {!joining && error && `参加失敗: ${error}`}
         </div>
       )}
 
-      <h3>
-        参加者 ({playerCount}/{NUM_PLAYERS})
-      </h3>
-      <ul>
-        {view?.self && (
-          <li>
-            {view.self.name}(自分){isHost && " [ホスト]"}
-          </li>
-        )}
-        {view?.others.map((p) => (
-          <li key={p.id}>
-            {p.name}
-            {p.id === view.hostPlayerId && " [ホスト]"}
-          </li>
-        ))}
-      </ul>
+      {alreadyJoined && allReady && (
+        <SBox
+          bg="rgba(46,85,116,0.10)"
+          stroke={ACCENT_BLUE}
+          sw={1.5}
+          style={{ marginTop: 14, padding: "10px 12px" }}
+        >
+          <div
+            style={{
+              fontFamily: FONT_BODY,
+              fontSize: 12,
+              color: INK,
+              lineHeight: 1.5,
+              textAlign: "center",
+            }}
+          >
+            全員、揃った。
+            {!isHost && " 主催者の開始を待っています…"}
+          </div>
+        </SBox>
+      )}
 
-      {alreadyJoined && playerCount === NUM_PLAYERS && isHost && (
-        <button type="button" onClick={handleStart} style={{ padding: 12, fontSize: 16 }}>
-          ゲーム開始
-        </button>
-      )}
-      {alreadyJoined && playerCount === NUM_PLAYERS && !isHost && (
-        <div style={{ color: "#666", marginTop: 12 }}>ホストの開始を待機中...</div>
-      )}
-    </div>
+      <div style={{ marginTop: 24 }}>{startBtn}</div>
+    </ScreenFrame>
   )
 }
