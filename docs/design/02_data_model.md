@@ -119,11 +119,19 @@ type SelfPlayerView = PublicPlayerView & {
   hand: Card[],
 };
 
+type AuctionActionView = {
+  playerId: PlayerId;
+  type: "bid" | "pass";
+  amount: number | null;  // type='bid' のみ
+};
+
 type PublicAuctionView = {
   sellerId, declaredBrand,
   startingBid, currentBid,
   highestBidderId,
-  passedPlayerIds,  // 実カード(card)は落札者確定まで非公開
+  passedPlayerIds,
+  actionHistory: AuctionActionView[];  // 進行中オークションの時系列、seq 昇順
+  // 実カード(card)は落札者確定まで非公開
 };
 
 type GameView = {
