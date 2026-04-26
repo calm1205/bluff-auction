@@ -144,7 +144,7 @@ export function Lobby() {
       </div>
 
       <div style={{ textAlign: "center", marginTop: 22 }}>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT }}>合言葉</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT }}>ルームID</div>
         <div style={{ marginTop: 8 }}>
           <RoomIdDisplay value={roomId} size="lg" muted={allReady} />
         </div>
