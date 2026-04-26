@@ -41,7 +41,7 @@
 
 ### ロビー画面(phase = LOBBY)
 
-- 参加ボタン(`POST /rooms/:id/players`、名前は Zustand store の `userName` を送信)
+- 参加ボタン(`POST /rooms/:id/players`、ボディなし。サーバーが `players` マスターから登録名を取得して `room_players` 行を作成)
 - 参加者リスト(最大4名)
 - ゲーム開始ボタン(4人揃いで有効化)
 - 退出ボタン(ルーム一覧へ戻る)
