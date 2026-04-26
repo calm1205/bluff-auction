@@ -26,12 +26,14 @@ type State = {
 export const useStore = create<State>((set) => ({
   userName: null,
   roomId: null,
+  lobbyMode: "idle",
   view: null,
   lastRevealed: null,
   lastError: null,
   winnerId: null,
   setUserName: (name) => set({ userName: name }),
   setRoomId: (id) => set({ roomId: id }),
+  setLobbyMode: (mode) => set({ lobbyMode: mode }),
   setView: (v) => set({ view: v }),
   setRevealed: (r) => set({ lastRevealed: r }),
   setError: (m) => set({ lastError: m }),
@@ -39,6 +41,7 @@ export const useStore = create<State>((set) => ({
   leaveRoom: () =>
     set({
       roomId: null,
+      lobbyMode: "idle",
       view: null,
       lastRevealed: null,
       lastError: null,
