@@ -134,11 +134,12 @@ stateDiagram-v2
 
 ```
 <App>
- ├ <NameRegister />                  プレイヤー登録(localStorage 未登録時のみ、UserBadge は非表示)
+ ├ <NameRegister />                  プレイヤー登録(モーダル/前画面、未登録時のみ)
  ├ <UserBadge />                     登録後は常時表示
  ├──────────── ゲーム前 ────────────
- ├ <RoomList />                      ルーム未選択時
- ├ <Lobby />                         phase = lobby
+ ├ <Home />                          初期画面(主催/参加ボタン)
+ ├ <HostLobby />                     主催画面 / 参加後画面(共通レイアウト、phase = lobby)
+ ├ <JoinForm />                      参加前画面(合言葉入力)
  ├──────────── ゲーム中 ────────────
  ├ <GameBoard>                       phase = listing/bidding/transaction
  │   ├ <OpponentList />
@@ -155,9 +156,11 @@ stateDiagram-v2
 
 | 状態 | 表示 |
 |---|---|
-| `userName` 未取得 | NameRegister |
-| `roomId` 未選択 | RoomList |
-| `view.phase === "lobby"` | Lobby |
+| `userName` 未取得 + 主催/参加未操作 | Home(右上の名前は非表示) |
+| `userName` 未取得 + 主催/参加押下中 | NameRegister |
+| `roomId` 未選択 + 「主催」未操作 | Home |
+| `roomId` 未選択 + 「参加」操作中 | JoinForm |
+| `roomId` あり + `view.phase === "lobby"` | HostLobby(主催/参加後共通) |
 | `view.phase === "ended"` | EndedScreen |
 | その他(listing/bidding/transaction) | GameBoard |
 
