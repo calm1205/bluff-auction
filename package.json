@@ -22,8 +22,5 @@
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "typescript": "^5.4.0"
-  },
-  "overrides": {
-    "@fastify/static": "^9.1.3"
   }
 }
