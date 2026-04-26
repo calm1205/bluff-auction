@@ -30,7 +30,8 @@ stateDiagram-v2
 
 | フェーズ | 許可イベント | チャネル | 実行主体 |
 |---|---|---|---|
-| LOBBY | `POST /rooms/:id/players`, `DELETE /rooms/:id/players/me`, `POST /rooms/:id/start` | REST | 全員 |
+| LOBBY | `POST /rooms/:id/players`, `DELETE /rooms/:id/players/me` | REST | 全員 |
+| LOBBY | `POST /rooms/:id/start` | REST | ホストのみ |
 | LISTING | `list-card` | Socket.IO | 出品者のみ |
 | BIDDING | `bid`, `pass` | Socket.IO | 出品者以外 |
 | TRANSACTION | (同一Txで自動処理、DBに永続化されない概念フェーズ) | — | — |
