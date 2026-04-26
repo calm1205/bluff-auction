@@ -4,6 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bluff Auction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Shippori+Mincho:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: #f6eedb;
+      }
+      body {
+        font-family: "Inter", "Hiragino Kaku Gothic ProN", sans-serif;
+        color: #1a1715;
+        -webkit-font-smoothing: antialiased;
+      }
+      .paper {
+        background:
+          radial-gradient(ellipse at 30% 10%, rgba(255, 255, 255, 0.6), transparent 60%),
+          radial-gradient(ellipse at 80% 90%, rgba(0, 0, 0, 0.03), transparent 60%), #f6eedb;
+        min-height: 100vh;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
