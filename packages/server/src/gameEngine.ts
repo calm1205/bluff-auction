@@ -126,8 +126,8 @@ export function startGame(state: GameState, roomId: string, requesterId: PlayerI
   state.players = state.players.map((p, i) => ({
     ...p,
     brand: shuffledBrands[i]!,
-    // cards.id がグローバル PK のため、room ID で namespace 化して衝突回避
-    hand: decks[i]!.map((c) => ({ ...c, id: `${roomId}:${c.id}` })),
+    // cards.id は UUID(buildInitialDeck で生成)、グローバル一意のためルーム間衝突なし
+    hand: decks[i]!,
     cash: INITIAL_CASH,
     fakesUsed: 0,
     passed: false,
