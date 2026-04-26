@@ -142,7 +142,7 @@ sequenceDiagram
     end
 ```
 
-### ルーム参加フロー(合言葉経由 + ホスト確定)
+### ルーム参加フロー(UUID 直接 + ホスト確定)
 
 ```mermaid
 sequenceDiagram
