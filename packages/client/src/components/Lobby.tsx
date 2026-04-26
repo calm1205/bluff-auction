@@ -158,7 +158,7 @@ export function Lobby() {
               fontWeight: 600,
             }}
           >
-            この合言葉を仲間に伝えてください
+            このルーム ID を仲間に伝えてください
           </div>
         )}
       </div>
