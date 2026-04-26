@@ -106,7 +106,7 @@ sequenceDiagram
     participant DB as Postgres
 
     U->>UI: 名前入力 → 開始
-    UI->>UI: crypto.randomUUID()
+    UI->>UI: generateUuid() (ハイフンなし 32 文字)
     UI->>S: POST /players { id, name }
     S->>DB: INSERT INTO players
     DB-->>S: ok
