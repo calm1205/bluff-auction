@@ -52,7 +52,7 @@ stateDiagram-v2
 ### 2. 主催画面
 
 - ルーム作成(`POST /rooms`)直後に表示
-- 続けて自動で `POST /rooms/:passphrase/players` を呼び、初の参加者として登録 → サーバー側で `rooms.host_player_id` が自分の `playerId` に設定される(以降このルームのホスト)
+- 続けて自動で `POST /rooms/:id/players` を呼び、初の参加者として登録 → サーバー側で `rooms.host_player_id` が自分の `playerId` に設定される(以降このルームのホスト)
 - **ルームID**を大きく表示(他参加者に伝える用、コピー可)
 - 参加プレイヤー一覧(自分含む、最大 4 名、`view-update` で更新)
 - 4 人揃った時点で「ゲーム開始」ボタンが有効化(**ホストのみ表示・押下可**)
@@ -61,7 +61,7 @@ stateDiagram-v2
 ### 3. 参加前画面
 
 - ルームID入力フィールド + 「参加」ボタン
-- 送信時、サーバーがルームIDを解決してルームに参加(`POST /rooms/:passphrase/players` 相当)
+- 送信時、サーバーがルームIDを解決してルームに参加(`POST /rooms/:id/players` 相当)
 - 失敗(存在しない/満員/進行中)はエラー表示してフィールドに残留
 - 「戻る」で初期画面へ
 
