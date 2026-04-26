@@ -42,7 +42,6 @@ export type GameState = {
   winnerId: PlayerId | null
   turnOrder: PlayerId[]
   hostPlayerId: PlayerId | null
-  passphrase: string
 }
 
 export type PublicPlayerView = {
