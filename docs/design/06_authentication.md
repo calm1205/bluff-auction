@@ -7,6 +7,7 @@
 - **テーブル設計**: 身元マスター `players` と参加状態 `room_players` を分離
   - `players` (id PK / name / created_at): プレイヤー登録時に作成
   - `room_players` (room_id PK / player_id PK + ゲーム状態): ルーム参加時に作成
+- **識別子**: `PlayerId` は **ハイフンなし 32 文字 hex** の UUID(`shared/uuid.ts` の `generateUuid()` で生成)
 - **認証強度**: プロトタイプ向けに UUID のみで識別(トークンやパスワードなし、なりすまし可能)
 - **スコープ**: 友人内プレイ想定、本格認証は範囲外
 
