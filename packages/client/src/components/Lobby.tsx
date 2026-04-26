@@ -16,27 +16,21 @@ export function Lobby() {
   const playerCount = view ? (view.self ? 1 : 0) + view.others.length : 0
   const roomFull = playerCount >= NUM_PLAYERS
 
-  // view 受信後、自動で参加
+  // view 受信後、自動で参加(名前は players マスターから取得されるためボディ送信不要)
   useEffect(() => {
     if (!roomId || !view) return
     if (alreadyJoined || attemptedRef.current) return
     if (roomFull) return
-    if (!userName) return
     attemptedRef.current = true
     setJoining(true)
     setError(null)
     api
-      .joinRoom(roomId, userName)
+      .joinRoom(roomId)
       .catch((e) => {
         setError((e as Error).message)
       })
       .finally(() => setJoining(false))
-  }, [
-	roomId,
-	view,
-	alreadyJoined,
-	roomFull
-])
+  }, [roomId, view, alreadyJoined, roomFull])
 
   if (!roomId) return null
 
