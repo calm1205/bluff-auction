@@ -69,11 +69,15 @@ stateDiagram-v2
   - 初回入札(`highestBidderId === null`): `amount >= startingBid`
   - 2回目以降: `amount >= currentBid + 1`
 - `amount <= sender.cash`
-- 合格で `currentBid` と `highestBidderId` を更新してブロードキャスト
+- 合格時
+  - `currentBid` と `highestBidderId` を更新
+  - `auction_actions` に `{ type: "bid", playerId: sender, amount, seq: 次の連番 }` を append
+  - ブロードキャスト
 
 ## パス処理(`pass`)
 
 - sender を `passedPlayerIds` に追加
+- `auction_actions` に `{ type: "pass", playerId: sender, amount: null, seq: 次の連番 }` を append
 - 残り入札者が1人(or 全員パス)で競り終了
   - 高値入札者あり → TRANSACTION
   - 全員パス → 流札処理 → LISTING(次ターン)
