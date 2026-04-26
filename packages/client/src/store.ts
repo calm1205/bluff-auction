@@ -3,15 +3,19 @@ import type { Brand, GameView, PlayerId } from "@bluff-auction/shared"
 
 type RevealedCard = { brand: Brand }
 
+type LobbyMode = "idle" | "join"
+
 type State = {
   userName: string | null
   roomId: string | null
+  lobbyMode: LobbyMode
   view: GameView | null
   lastRevealed: RevealedCard | null
   lastError: string | null
   winnerId: PlayerId | null
   setUserName: (name: string | null) => void
   setRoomId: (id: string | null) => void
+  setLobbyMode: (mode: LobbyMode) => void
   setView: (v: GameView | null) => void
   setRevealed: (r: RevealedCard) => void
   setError: (m: string | null) => void
