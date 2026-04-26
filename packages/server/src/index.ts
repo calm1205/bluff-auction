@@ -232,7 +232,6 @@ async function main() {
   await app.listen({ port: PORT, host: "0.0.0.0" })
   console.log(`[server] Bluff Auction server listening on :${PORT}`)
   console.log(`[server] OpenAPI docs: http://localhost:${PORT}/docs`)
-  console.log("[server] routes:\n" + app.printRoutes({ commonPrefix: false, includeMeta: true }))
 }
 
 main().catch((e) => {
