@@ -12,9 +12,10 @@
 ### 認証
 
 - クライアントは接続時に `auth.playerId` と `auth.roomId` を送信
-  - `io({ auth: { playerId, roomId } })` で localStorage の UUID と入室中ルーム ID を渡す
-- サーバーは `socket.data.playerId` / `socket.data.roomId` に保持
-- いずれか欠落で接続拒否
+  - `auth.playerId`: localStorage の `bluff-auction.playerId`(UUID)
+  - `auth.roomId`: 入室中ルームの**合言葉**(4 文字、サーバーが UUID へ解決)
+- サーバーは `socket.data.playerId` / `socket.data.passphrase` / `socket.data.roomId`(解決済み UUID)を保持
+- いずれか欠落 / passphrase 形式不正 / ルーム未存在で接続拒否
 
 ### Client → Server
 
