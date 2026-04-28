@@ -72,6 +72,7 @@ export async function loadRoomState(tx: Tx, roomId: string): Promise<GameState |
       currentBid: auctionRow.currentBid,
       highestBidderId: auctionRow.highestBidderId,
       passedPlayerIds: auctionRow.passedPlayerIds as PlayerId[],
+      currentBidderId: auctionRow.currentBidderId,
     }
   }
 
