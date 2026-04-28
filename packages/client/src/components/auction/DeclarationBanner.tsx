@@ -1,4 +1,4 @@
-import { ACCENT_RED, BRAND_LABEL_JP, FONT_BODY, FONT_SERIF, PAPER } from "../../sketch/index.js"
+import { ACCENT_RED, BRAND_LABEL_JP, FONT_SERIF, PAPER } from "../../sketch/index.js"
 import type { Brand } from "@bluff-auction/shared"
 
 type Props = {
@@ -35,16 +35,6 @@ export function DeclarationBanner({ sellerName, declaredBrand }: Props) {
         <div style={{ height: 2, background: ACCENT_RED }} />
         <div style={{ height: 3 }} />
         <div style={{ height: 1, background: ACCENT_RED }} />
-      </div>
-      <div
-        style={{
-          fontFamily: FONT_BODY,
-          fontSize: 12,
-          color: "rgba(246,238,219,0.65)",
-          marginTop: 6,
-        }}
-      >
-        …本当かどうかは、誰にもわからない
       </div>
     </div>
   )
