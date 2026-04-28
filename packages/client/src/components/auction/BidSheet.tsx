@@ -79,16 +79,6 @@ export function BidSheet() {
 
       {/* heading */}
       <div style={{ padding: "0 18px 8px" }}>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            letterSpacing: 2,
-            color: "rgba(246,238,219,0.5)",
-          }}
-        >
-          YOUR TURN · 入札
-        </div>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 800, marginTop: 2 }}>
           上乗せする?それとも降りる?
         </div>
