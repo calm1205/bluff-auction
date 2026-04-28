@@ -80,7 +80,7 @@ export function BidSheet() {
       {/* heading */}
       <div style={{ padding: "0 18px 8px" }}>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 800, marginTop: 2 }}>
-          上乗せする?それとも降りる?
+          パス？or 上乗せ？
         </div>
         <div
           style={{
