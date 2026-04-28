@@ -377,16 +377,12 @@ export function findActiveCpu(state: GameState): Player | null {
     const seller = getPlayer(state, sellerId)
     return seller && seller.isCpu ? seller : null
   }
-  // bidding: 出品者以外で未パス・所持金あり・CPU を順に検索
+  // bidding: 現在の手番が CPU の場合のみ自動進行対象
   const auction = state.currentAuction
   if (!auction) return null
-  for (const p of state.players) {
-    if (!p.isCpu) continue
-    if (p.id === auction.sellerId) continue
-    if (auction.passedPlayerIds.includes(p.id)) continue
-    return p
-  }
-  return null
+  if (!auction.currentBidderId) return null
+  const bidder = getPlayer(state, auction.currentBidderId)
+  return bidder && bidder.isCpu ? bidder : null
 }
 
 // CPU が現在のフェーズに対して取るべき 1 アクションを実行する。
