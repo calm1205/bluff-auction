@@ -90,7 +90,11 @@ export function AuctionBoard() {
 
       {/* top: opponents */}
       <div style={{ position: "relative", padding: "16px 14px 0" }}>
-        <OpponentStrip others={view.others} currentSellerId={currentSellerId} />
+        <OpponentStrip
+          others={view.others}
+          currentSellerId={currentSellerId}
+          currentBidderId={a?.currentBidderId ?? null}
+        />
       </div>
 
       {/* center stage */}
