@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import type { Brand, GameView, PlayerId } from "@bluff-auction/shared"
+import { clearStoredRoomId, setStoredRoomId } from "./utils/roomId.js"
 
 type RevealedCard = { brand: Brand }
 
@@ -32,13 +33,18 @@ export const useStore = create<State>((set) => ({
   lastError: null,
   winnerId: null,
   setUserName: (name) => set({ userName: name }),
-  setRoomId: (id) => set({ roomId: id }),
+  setRoomId: (id) => {
+    if (id) setStoredRoomId(id)
+    else clearStoredRoomId()
+    set({ roomId: id })
+  },
   setLobbyMode: (mode) => set({ lobbyMode: mode }),
   setView: (v) => set({ view: v }),
   setRevealed: (r) => set({ lastRevealed: r }),
   setError: (m) => set({ lastError: m }),
   setWinner: (id) => set({ winnerId: id }),
-  leaveRoom: () =>
+  leaveRoom: () => {
+    clearStoredRoomId()
     set({
       roomId: null,
       lobbyMode: "idle",
@@ -46,5 +52,6 @@ export const useStore = create<State>((set) => ({
       lastRevealed: null,
       lastError: null,
       winnerId: null,
-    }),
+    })
+  },
 }))

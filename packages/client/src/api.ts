@@ -1,3 +1,4 @@
+import type { GameView } from "@bluff-auction/shared"
 import { getStoredPlayerId } from "./utils/playerId.js"
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4000"
@@ -56,6 +57,11 @@ export type CreatedRoom = { id: string }
 
 export async function createRoom(): Promise<CreatedRoom> {
   const res = await request("/rooms", { method: "POST" })
+  return res.json()
+}
+
+export async function getRoom(roomId: string): Promise<GameView> {
+  const res = await request(`/rooms/${encodeURIComponent(roomId)}`)
   return res.json()
 }
 

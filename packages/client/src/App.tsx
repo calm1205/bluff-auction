@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { socket } from "./socket.js"
+import { connectSocket, socket } from "./socket.js"
 import { useStore } from "./store.js"
 import { Lobby } from "./components/lobby/Lobby.js"
 import { AuctionBoard } from "./components/auction/AuctionBoard.js"
@@ -12,6 +12,7 @@ import { Rules } from "./components/rules/Rules.js"
 import { RulesLauncher } from "./components/RulesLauncher.js"
 import * as api from "./api.js"
 import { clearPlayerStorage, getStoredPlayerId } from "./utils/playerId.js"
+import { clearStoredRoomId, getStoredRoomId } from "./utils/roomId.js"
 
 type AuthStatus = "loading" | "missing" | "verified" | "error"
 
@@ -21,6 +22,7 @@ export function App() {
   const lobbyMode = useStore((s) => s.lobbyMode)
   const view = useStore((s) => s.view)
   const setUserName = useStore((s) => s.setUserName)
+  const setRoomId = useStore((s) => s.setRoomId)
   const setView = useStore((s) => s.setView)
   const setRevealed = useStore((s) => s.setRevealed)
   const setWinner = useStore((s) => s.setWinner)
@@ -63,6 +65,36 @@ export function App() {
       cancelled = true
     }
   }, [retryNonce, setUserName])
+
+  // 起動時の roomId 復帰フロー
+  useEffect(() => {
+    if (authStatus !== "verified") return
+    if (roomId) return
+    const stored = getStoredRoomId()
+    if (!stored) return
+    let cancelled = false
+    const run = async () => {
+      try {
+        const v = await api.getRoom(stored)
+        if (cancelled) return
+        if (v.phase === "ended") {
+          clearStoredRoomId()
+          return
+        }
+        setRoomId(stored)
+        connectSocket(stored)
+      } catch (e) {
+        if (cancelled) return
+        if (e instanceof api.HttpError && e.status === 404) {
+          clearStoredRoomId()
+        }
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [authStatus, roomId, setRoomId])
 
   // Socket イベント購読
   useEffect(() => {
