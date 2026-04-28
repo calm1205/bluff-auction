@@ -37,6 +37,7 @@ function toPublicAuction(a: GameState["currentAuction"]): PublicAuctionView | nu
     currentBid: a.currentBid,
     highestBidderId: a.highestBidderId,
     passedPlayerIds: a.passedPlayerIds,
+    currentBidderId: a.currentBidderId,
   }
 }
 
