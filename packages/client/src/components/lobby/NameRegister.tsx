@@ -77,7 +77,7 @@ export function NameRegister({ initialError, onRegistered }: Props) {
             marginTop: 8,
           }}
         >
-          卓で表示される名前. あとで変更可.
+          卓で表示される名前.
         </div>
       </div>
 
