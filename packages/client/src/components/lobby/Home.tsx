@@ -87,12 +87,7 @@ export function Home() {
             opacity: creating ? 0.7 : 1,
           }}
         >
-          <SBox
-            bg={PAPER_WARM}
-            stroke={INK}
-            sw={2}
-            style={{ height: 116, outline: `2.5px solid ${ACCENT_RED}`, outlineOffset: 2 }}
-          >
+          <SBox bg={PAPER_WARM} stroke={INK} sw={2} style={{ height: 116 }}>
             <div
               style={{
                 padding: "14px 16px",
