@@ -93,10 +93,10 @@ export function Lobby() {
     leaveRoom()
   }
 
-  const handleAddCpu = async (fill: boolean) => {
+  const handleAddCpu = async () => {
     if (!roomId) return
     try {
-      await api.addCpuPlayers(roomId, fill ? { fill: true } : { count: 1 })
+      await api.addCpuPlayers(roomId, { count: 1 })
     } catch (e) {
       alert(`CPU 追加失敗: ${(e as Error).message}`)
     }
