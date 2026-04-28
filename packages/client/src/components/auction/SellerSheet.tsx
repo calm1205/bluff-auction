@@ -84,7 +84,8 @@ export function SellerSheet() {
             display: "flex",
             gap: 6,
             overflowX: "auto",
-            paddingBottom: 4,
+            paddingTop: 10,
+            paddingBottom: 6,
           }}
         >
           {self.hand.map((c) => (
