@@ -112,7 +112,7 @@ export function Home() {
                   {creating ? "作成中..." : "新しい卓を開いて\nルームID を仲間に配る"}
                 </div>
               </div>
-              <div style={{ fontFamily: FONT_SERIF, fontSize: 22, color: ACCENT_RED }}>→</div>
+              <div style={{ fontFamily: FONT_SERIF, fontSize: 22 }}>→</div>
             </div>
           </SBox>
         </button>
