@@ -54,21 +54,10 @@ export function SellerSheet() {
         borderTopLeftRadius: 18,
         borderTopRightRadius: 18,
         boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
-        paddingTop: 12,
+        paddingTop: 22,
         color: PAPER,
       }}
     >
-      {/* drag handle */}
-      <div
-        style={{
-          width: 42,
-          height: 4,
-          borderRadius: 2,
-          background: "rgba(246,238,219,0.25)",
-          margin: "0 auto 10px",
-        }}
-      />
-
       {/* heading */}
       <div style={{ padding: "0 18px 8px" }}>
         <div style={{ fontFamily: FONT_SERIF, fontSize: 22, fontWeight: 800, marginTop: 2 }}>
