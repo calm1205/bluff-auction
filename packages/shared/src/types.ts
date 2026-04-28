@@ -70,6 +70,7 @@ export type PublicAuctionView = {
   currentBid: number
   highestBidderId: PlayerId | null
   passedPlayerIds: PlayerId[]
+  currentBidderId: PlayerId | null
 }
 
 export type GameView = {
