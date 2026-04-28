@@ -11,10 +11,11 @@ import {
 type Props = {
   others: PublicPlayerView[]
   currentSellerId: string | null
+  currentBidderId?: string | null
 }
 
-// V3 Theater: 上部に他プレイヤーを横並び chip で表示。出品中のプレイヤーは赤枠で強調
-export function OpponentStrip({ others, currentSellerId }: Props) {
+// V3 Theater: 上部に他プレイヤーを横並び chip で表示。出品中 / 入札手番のプレイヤーは赤枠で強調
+export function OpponentStrip({ others, currentSellerId, currentBidderId = null }: Props) {
   return (
     <div
       style={{
@@ -25,7 +26,7 @@ export function OpponentStrip({ others, currentSellerId }: Props) {
       }}
     >
       {others.map((p, i) => {
-        const isSeller = p.id === currentSellerId
+        const isActive = p.id === currentSellerId || p.id === currentBidderId
         const color = SEAT_COLORS[i % SEAT_COLORS.length]!
         return (
           <div
@@ -36,7 +37,7 @@ export function OpponentStrip({ others, currentSellerId }: Props) {
               alignItems: "center",
               gap: 6,
               padding: "4px 6px",
-              border: `1.5px solid ${isSeller ? ACCENT_RED : "rgba(246,238,219,0.25)"}`,
+              border: `1.5px solid ${isActive ? ACCENT_RED : "rgba(246,238,219,0.25)"}`,
               borderRadius: 999,
               opacity: p.online ? 1 : 0.45,
             }}
