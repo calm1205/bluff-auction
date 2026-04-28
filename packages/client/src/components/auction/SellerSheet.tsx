@@ -10,7 +10,6 @@ import {
   FONT_BODY,
   FONT_MONO,
   FONT_SERIF,
-  INK,
   PAPER,
   SBtn,
 } from "../../sketch/index.js"
@@ -105,24 +104,6 @@ export function SellerSheet() {
               aria-label={`${BRAND_LABEL_JP[c.brand]} を選択`}
             >
               <CardFace brand={c.brand} w={56} h={78} />
-              {c.brand === self.brand && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    right: -6,
-                    background: "#3d6b46",
-                    color: PAPER,
-                    fontFamily: FONT_MONO,
-                    fontSize: 8,
-                    padding: "1px 4px",
-                    borderRadius: 2,
-                    border: `1px solid ${INK}`,
-                  }}
-                >
-                  自分
-                </div>
-              )}
             </button>
           ))}
         </div>
