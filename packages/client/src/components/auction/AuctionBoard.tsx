@@ -54,6 +54,10 @@ export function AuctionBoard() {
       : null
   const passed = view.self.passed || (a?.passedPlayerIds.includes(view.self.id) ?? false)
   const isMyBidTurn = a?.currentBidderId === view.self.id
+  const currentBidderName =
+    a?.currentBidderId != null
+      ? (allPlayers.find((p) => p.id === a.currentBidderId)?.name ?? "?")
+      : null
 
   return (
     <div
@@ -229,12 +233,24 @@ export function AuctionBoard() {
           {inListing && amSeller && <SellerSheet />}
           {inBidding && !amSeller && !passed && isMyBidTurn && <BidSheet />}
           {inBidding && !amSeller && !passed && !isMyBidTurn && (
-            <WaitingSheet message="他プレイヤーの入札を待機中" />
+            <WaitingSheet
+              message={
+                currentBidderName
+                  ? `${currentBidderName} の入札を待機中`
+                  : "他プレイヤーの入札を待機中"
+              }
+            />
           )}
           {inBidding && !amSeller && passed && (
             <WaitingSheet message="パス済み — 次のターンを待つ" />
           )}
-          {inBidding && amSeller && <WaitingSheet message="入札中 — 進行を待機" />}
+          {inBidding && amSeller && (
+            <WaitingSheet
+              message={
+                currentBidderName ? `${currentBidderName} の入札を待機中` : "入札中 — 進行を待機"
+              }
+            />
+          )}
         </div>
 
         {/* always-on stats footer */}
