@@ -1,4 +1,12 @@
-import { ACCENT_BLUE, FONT_BODY, FONT_SERIF, INK, INK_SOFT, PAPER } from "../sketch/index.js"
+import {
+  ACCENT_BLUE,
+  BookIcon,
+  FONT_BODY,
+  FONT_SERIF,
+  INK,
+  INK_SOFT,
+  PAPER,
+} from "../sketch/index.js"
 
 type Variant = "pill" | "corner" | "subtle"
 
@@ -30,15 +38,7 @@ export function RulesLink({ variant = "subtle", onClick }: Props) {
           color: INK,
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path
-            d="M2 2 L2 12 L7 11 L12 12 L12 2 L7 3 Z"
-            stroke={INK}
-            strokeWidth="1.4"
-            strokeLinejoin="round"
-          />
-          <path d="M7 3 L7 11" stroke={INK} strokeWidth="1.4" />
-        </svg>
+        <BookIcon size={14} />
         ルールを見る
       </button>
     )
@@ -64,7 +64,7 @@ export function RulesLink({ variant = "subtle", onClick }: Props) {
           background: PAPER,
         }}
       >
-        <span style={{ fontFamily: FONT_SERIF, fontWeight: 800 }}>?</span>
+        <BookIcon size={12} strokeWidth={1.3} />
         ルール
       </button>
     )
@@ -87,6 +87,7 @@ export function RulesLink({ variant = "subtle", onClick }: Props) {
         textUnderlineOffset: 3,
       }}
     >
+      <BookIcon size={12} color={ACCENT_BLUE} strokeWidth={1.3} />
       ルールを見る
     </button>
   )
