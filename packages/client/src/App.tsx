@@ -164,15 +164,17 @@ export function App() {
     <AuctionBoard />
   )
 
+  const inAuction = Boolean(roomId) && view?.phase !== "lobby" && view?.phase !== undefined
+
   return (
     <>
-      <UserBadge name={userName ?? ""} />
+      {!inAuction && <UserBadge name={userName ?? ""} />}
       {showRules ? <Rules onClose={() => setShowRules(false)} /> : screen}
       {!showRules && (
         <RulesLauncher
           onShow={() => setShowRules(true)}
           variant={!roomId && lobbyMode === "idle" ? "pill" : "corner"}
-          hidden={Boolean(roomId) && view?.phase !== "lobby" && view?.phase !== undefined}
+          hidden={inAuction}
         />
       )}
     </>
