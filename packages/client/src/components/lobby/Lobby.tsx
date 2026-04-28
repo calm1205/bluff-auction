@@ -269,24 +269,9 @@ export function Lobby() {
       )}
 
       {isHost && !allReady && alreadyJoined && (
-        <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-          <SBtn
-            bg={PAPER}
-            color={INK}
-            size="md"
-            onClick={() => handleAddCpu(false)}
-            style={{ flex: 1 }}
-          >
+        <div style={{ marginTop: 14 }}>
+          <SBtn bg={PAPER} color={INK} size="md" onClick={handleAddCpu} style={{ width: "100%" }}>
             + CPU 1人
-          </SBtn>
-          <SBtn
-            bg={ACCENT_BLUE}
-            color={PAPER}
-            size="md"
-            onClick={() => handleAddCpu(true)}
-            style={{ flex: 1 }}
-          >
-            残り席を CPU で埋める
           </SBtn>
         </div>
       )}
