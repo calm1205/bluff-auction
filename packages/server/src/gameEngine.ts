@@ -209,9 +209,44 @@ export function listCard(
     currentBid: startingBid,
     highestBidderId: null,
     passedPlayerIds: [],
+    currentBidderId: firstBidderId(state, senderId),
   }
   state.phase = "bidding"
   return ok([{ type: "view-update" }])
+}
+
+// 出品直後の最初の入札ターンを seller の次のプレイヤーに設定
+function firstBidderId(state: GameState, sellerId: PlayerId): PlayerId | null {
+  const total = state.turnOrder.length
+  if (total === 0) return null
+  const sellerIdx = state.turnOrder.indexOf(sellerId)
+  if (sellerIdx < 0) return null
+  for (let i = 1; i <= total; i++) {
+    const cand = state.turnOrder[(sellerIdx + i) % total]
+    if (cand && cand !== sellerId) return cand
+  }
+  return null
+}
+
+// 現在の bidder の次にアクション可能なプレイヤー (seller以外で未passed) を返す
+function nextBidderId(state: GameState): PlayerId | null {
+  const auction = state.currentAuction
+  if (!auction) return null
+  const total = state.turnOrder.length
+  if (total === 0) return null
+  const startIdx =
+    auction.currentBidderId !== null
+      ? state.turnOrder.indexOf(auction.currentBidderId)
+      : state.turnOrder.indexOf(auction.sellerId)
+  if (startIdx < 0) return null
+  for (let i = 1; i <= total; i++) {
+    const cand = state.turnOrder[(startIdx + i) % total]
+    if (!cand) continue
+    if (cand === auction.sellerId) continue
+    if (auction.passedPlayerIds.includes(cand)) continue
+    return cand
+  }
+  return null
 }
 
 export function bid(state: GameState, senderId: PlayerId, amount: number): EngineResult {
@@ -220,6 +255,7 @@ export function bid(state: GameState, senderId: PlayerId, amount: number): Engin
   if (!auction) return err("no-auction", "競り情報なし")
   if (auction.sellerId === senderId) return err("seller-cant-bid", "出品者は入札不可")
   if (auction.passedPlayerIds.includes(senderId)) return err("already-passed", "パス済み")
+  if (auction.currentBidderId !== senderId) return err("not-your-turn", "入札の手番ではない")
   const bidder = getPlayer(state, senderId)
   if (!bidder) return err("no-player", "プレイヤー不在")
 
@@ -229,7 +265,8 @@ export function bid(state: GameState, senderId: PlayerId, amount: number): Engin
 
   auction.currentBid = amount
   auction.highestBidderId = senderId
-  return ok([{ type: "view-update" }])
+
+  return advanceBidder(state)
 }
 
 export function pass(state: GameState, senderId: PlayerId): EngineResult {
@@ -238,19 +275,34 @@ export function pass(state: GameState, senderId: PlayerId): EngineResult {
   if (!auction) return err("no-auction", "競り情報なし")
   if (auction.sellerId === senderId) return err("seller-cant-pass", "出品者はパス不可")
   if (auction.passedPlayerIds.includes(senderId)) return err("already-passed", "パス済み")
+  if (auction.currentBidderId !== senderId) return err("not-your-turn", "入札の手番ではない")
 
   auction.passedPlayerIds.push(senderId)
 
-  const nonSellerIds = state.players.map((p) => p.id).filter((id) => id !== auction.sellerId)
+  return advanceBidder(state)
+}
+
+// bid/pass 後の手番進行 + settle 判定
+function advanceBidder(state: GameState): EngineResult {
+  const auction = state.currentAuction!
+  const nonSellerIds = state.turnOrder.filter((id) => id !== auction.sellerId)
   const remainingBidders = nonSellerIds.filter((id) => !auction.passedPlayerIds.includes(id))
 
-  const shouldEnd =
-    remainingBidders.length === 0 ||
-    (auction.highestBidderId !== null && remainingBidders.length === 0)
+  // 入札可能者ゼロ = 全員 pass で終了
+  if (remainingBidders.length === 0) return settleAuction(state)
+  // 残りが最高入札者 1 人 = 競り落とし確定
+  if (
+    remainingBidders.length === 1 &&
+    auction.highestBidderId !== null &&
+    remainingBidders[0] === auction.highestBidderId
+  ) {
+    return settleAuction(state)
+  }
 
-  if (!shouldEnd) return ok([{ type: "view-update" }])
-
-  return settleAuction(state)
+  const next = nextBidderId(state)
+  if (!next) return settleAuction(state)
+  auction.currentBidderId = next
+  return ok([{ type: "view-update" }])
 }
 
 function settleAuction(state: GameState): EngineResult {
