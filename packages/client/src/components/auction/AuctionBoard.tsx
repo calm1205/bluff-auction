@@ -151,7 +151,7 @@ export function AuctionBoard() {
 
         {inBidding && a && (
           <>
-            <DeclarationBanner sellerName={sellerName} declaredBrand={a.declaredBrand} />
+            <DeclarationBanner sellerName={sellerName} />
             <div style={{ marginTop: 18 }}>
               <AuctionCardArt declaredBrand={a.declaredBrand} startingBid={a.startingBid} />
             </div>
