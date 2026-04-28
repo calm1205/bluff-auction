@@ -1,13 +1,11 @@
-import { ACCENT_RED, BRAND_LABEL_JP, FONT_SERIF, PAPER } from "../../sketch/index.js"
-import type { Brand } from "@bluff-auction/shared"
+import { ACCENT_RED, FONT_SERIF } from "../../sketch/index.js"
 
 type Props = {
   sellerName: string
-  declaredBrand: Brand
 }
 
-// V3 Theater: 「○○ が宣言: 「△△」」の見出し
-export function DeclarationBanner({ sellerName, declaredBrand }: Props) {
+// V3 Theater: 「○○ が宣言:」の見出し (ブランド名はカード画像で視覚提示)
+export function DeclarationBanner({ sellerName }: Props) {
   return (
     <div style={{ textAlign: "center" }}>
       <div
@@ -18,17 +16,6 @@ export function DeclarationBanner({ sellerName, declaredBrand }: Props) {
         }}
       >
         {sellerName} が宣言:
-      </div>
-      <div
-        style={{
-          fontFamily: FONT_SERIF,
-          fontSize: 46,
-          fontWeight: 800,
-          marginTop: -4,
-          color: PAPER,
-        }}
-      >
-        「{BRAND_LABEL_JP[declaredBrand]}」
       </div>
       {/* ZigZag アクセント */}
       <div style={{ width: 200, margin: "4px auto 0" }}>
