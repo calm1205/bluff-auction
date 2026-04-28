@@ -53,6 +53,7 @@ export function AuctionBoard() {
       ? (allPlayers.find((p) => p.id === a.highestBidderId)?.name ?? "?")
       : null
   const passed = view.self.passed || (a?.passedPlayerIds.includes(view.self.id) ?? false)
+  const isMyBidTurn = a?.currentBidderId === view.self.id
 
   return (
     <div
@@ -226,7 +227,10 @@ export function AuctionBoard() {
         {/* contextual sheet */}
         <div style={{ pointerEvents: "auto", position: "relative" }}>
           {inListing && amSeller && <SellerSheet />}
-          {inBidding && !amSeller && !passed && <BidSheet />}
+          {inBidding && !amSeller && !passed && isMyBidTurn && <BidSheet />}
+          {inBidding && !amSeller && !passed && !isMyBidTurn && (
+            <WaitingSheet message="他プレイヤーの入札を待機中" />
+          )}
           {inBidding && !amSeller && passed && (
             <WaitingSheet message="パス済み — 次のターンを待つ" />
           )}
