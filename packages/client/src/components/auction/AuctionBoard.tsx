@@ -88,20 +88,6 @@ export function AuctionBoard() {
         <OpponentStrip others={view.others} currentSellerId={currentSellerId} />
       </div>
 
-      {/* phase tag */}
-      <div
-        style={{
-          textAlign: "center",
-          marginTop: 14,
-          fontFamily: FONT_MONO,
-          fontSize: 10,
-          letterSpacing: 3,
-          color: "rgba(246,238,219,0.4)",
-        }}
-      >
-        {phaseLabel(view.phase)}
-      </div>
-
       {/* center stage */}
       <div style={{ position: "relative", padding: "12px 18px 0", textAlign: "center" }}>
         {inListing && amSeller && (
@@ -308,19 +294,4 @@ function WaitingSheet({ message }: { message: string }) {
       </div>
     </div>
   )
-}
-
-function phaseLabel(phase: string): string {
-  switch (phase) {
-    case "listing":
-      return "PHASE · LISTING"
-    case "bidding":
-      return "PHASE · BIDDING"
-    case "transaction":
-      return "PHASE · REVEAL"
-    case "ended":
-      return "PHASE · ENDED"
-    default:
-      return ""
-  }
 }
