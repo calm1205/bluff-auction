@@ -155,7 +155,7 @@ export function Lobby() {
             fontWeight: allReady ? 700 : 400,
           }}
         >
-          {allReady ? "● ALL READY" : isHost ? "WAITING" : "JOINED · WAITING"}
+          {allReady ? "● ALL READY" : isHost ? "" : "JOINED · WAITING"}
         </div>
       </div>
 
