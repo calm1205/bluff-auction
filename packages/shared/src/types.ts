@@ -33,6 +33,8 @@ export type Auction = {
   currentBid: number
   highestBidderId: PlayerId | null
   passedPlayerIds: PlayerId[]
+  // bidding フェーズ中、次にアクション (bid/pass) する番のプレイヤー
+  currentBidderId: PlayerId | null
 }
 
 export type GameState = {
