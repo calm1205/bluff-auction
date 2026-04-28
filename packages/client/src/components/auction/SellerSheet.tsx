@@ -243,15 +243,46 @@ export function SellerSheet() {
           <div
             style={{
               flex: 1,
-              textAlign: "center",
-              fontFamily: FONT_SERIF,
-              fontSize: 36,
-              fontWeight: 800,
-              color: ACCENT_GOLD,
-              lineHeight: 1,
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "center",
+              gap: 2,
             }}
           >
-            ${startingBid}
+            <span
+              style={{
+                fontFamily: FONT_SERIF,
+                fontSize: 36,
+                fontWeight: 800,
+                color: ACCENT_GOLD,
+                lineHeight: 1,
+              }}
+            >
+              $
+            </span>
+            <input
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={startingBid}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                if (Number.isNaN(v)) return
+                setStartingBid(Math.max(0, v))
+              }}
+              onBlur={() => setStartingBid((v) => Math.max(0, Math.min(self.cash, v)))}
+              aria-label="開始額"
+              style={{
+                all: "unset",
+                width: 100,
+                textAlign: "center",
+                fontFamily: FONT_SERIF,
+                fontSize: 36,
+                fontWeight: 800,
+                color: ACCENT_GOLD,
+                lineHeight: 1,
+              }}
+            />
           </div>
           <button
             type="button"
