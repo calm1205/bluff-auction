@@ -73,6 +73,9 @@ export type PublicAuctionView = {
   highestBidderId: PlayerId | null
   passedPlayerIds: PlayerId[]
   currentBidderId: PlayerId | null
+  revealAckedIds: PlayerId[]
+  // phase === "transaction" のときのみ実カードのブランドを公開 (それ以外は null)
+  actualBrand: Brand | null
 }
 
 export type GameView = {
