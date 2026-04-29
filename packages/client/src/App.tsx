@@ -24,7 +24,6 @@ export function App() {
   const setUserName = useStore((s) => s.setUserName)
   const setRoomId = useStore((s) => s.setRoomId)
   const setView = useStore((s) => s.setView)
-  const setRevealed = useStore((s) => s.setRevealed)
   const setWinner = useStore((s) => s.setWinner)
   const setError = useStore((s) => s.setError)
 
@@ -122,7 +121,11 @@ export function App() {
       socket.off("unsold-penalty")
       socket.off("error-event")
     }
-  }, [setView, setRevealed, setWinner, setError])
+  }, [
+	setView,
+	setWinner,
+	setError
+])
 
   if (authStatus === "loading") {
     return <div style={{ padding: 24 }}>読み込み中...</div>
