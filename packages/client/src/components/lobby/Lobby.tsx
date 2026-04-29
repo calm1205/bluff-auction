@@ -146,17 +146,6 @@ export function Lobby() {
         >
           ← 退出
         </button>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            letterSpacing: 2,
-            color: allReady ? ACCENT_GREEN : INK_SOFT,
-            fontWeight: allReady ? 700 : 400,
-          }}
-        >
-          {allReady ? "● ALL READY" : isHost ? "" : "JOINED · WAITING"}
-        </div>
       </div>
 
       <div style={{ textAlign: "center", marginTop: 22 }}>
