@@ -64,6 +64,7 @@ export const auctions = pgTable("auctions", {
   highestBidderId: text("highest_bidder_id"),
   passedPlayerIds: text("passed_player_ids").array().notNull().default([]),
   currentBidderId: text("current_bidder_id"),
+  revealAckedIds: text("reveal_acked_ids").array().notNull().default([]),
 })
 
 export type RoomRow = typeof rooms.$inferSelect
