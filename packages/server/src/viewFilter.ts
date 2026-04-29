@@ -28,7 +28,10 @@ function toSelfPlayer(p: GameState["players"][number]): SelfPlayerView {
   }
 }
 
-function toPublicAuction(a: GameState["currentAuction"]): PublicAuctionView | null {
+function toPublicAuction(
+  a: GameState["currentAuction"],
+  phase: GameState["phase"],
+): PublicAuctionView | null {
   if (!a) return null
   return {
     sellerId: a.sellerId,
@@ -38,6 +41,8 @@ function toPublicAuction(a: GameState["currentAuction"]): PublicAuctionView | nu
     highestBidderId: a.highestBidderId,
     passedPlayerIds: a.passedPlayerIds,
     currentBidderId: a.currentBidderId,
+    revealAckedIds: a.revealAckedIds,
+    actualBrand: phase === "transaction" ? a.card.brand : null,
   }
 }
 
