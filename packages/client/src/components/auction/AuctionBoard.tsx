@@ -1,13 +1,5 @@
 import { useStore } from "../../store.js"
-import { BRAND_LABELS } from "@bluff-auction/shared"
-import {
-  ACCENT_GOLD,
-  CardFace,
-  FONT_BODY,
-  FONT_MONO,
-  FONT_SERIF,
-  PAPER,
-} from "../../sketch/index.js"
+import { ACCENT_GOLD, FONT_BODY, FONT_SERIF, PAPER } from "../../sketch/index.js"
 import { OpponentStrip } from "./OpponentStrip.js"
 import { MyStatsBar } from "./MyStatsBar.js"
 import { DeclarationBanner } from "./DeclarationBanner.js"
@@ -21,7 +13,6 @@ const THEATER_BG = "#120e0c"
 // V3 Theater: ダーク背景 + spotlight + 上 OpponentStrip + 中央演出 + 下 MyStats + 文脈別 sheet
 export function AuctionBoard() {
   const view = useStore((s) => s.view)
-  const lastRevealed = useStore((s) => s.lastRevealed)
 
   if (!view || !view.self) {
     return (
@@ -192,32 +183,6 @@ export function AuctionBoard() {
           </div>
         )}
       </div>
-
-      {/* last revealed flash */}
-      {lastRevealed && (
-        <div
-          style={{
-            position: "absolute",
-            top: 80,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "rgba(28,22,18,0.85)",
-            border: `1px solid ${ACCENT_GOLD}`,
-            borderRadius: 999,
-            padding: "4px 12px",
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            color: ACCENT_GOLD,
-            letterSpacing: 1.5,
-          }}
-        >
-          <CardFace brand={lastRevealed.brand} w={20} h={28} />
-          直前の落札 · {BRAND_LABELS[lastRevealed.brand]}
-        </div>
-      )}
 
       {/* my stats bar (上部 sheet とは独立、画面下部に固定だが sheet の上にも来る) */}
       <div
