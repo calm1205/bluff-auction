@@ -46,18 +46,6 @@ export function NameRegister({ initialError, onRegistered }: Props) {
 
   return (
     <ScreenFrame>
-      <div
-        style={{
-          fontFamily: FONT_MONO,
-          fontSize: 11,
-          letterSpacing: 2,
-          color: INK_SOFT,
-          textAlign: "right",
-        }}
-      >
-        REGISTER · 1 / 1
-      </div>
-
       <div style={{ marginTop: 24 }}>
         <div
           style={{
