@@ -109,17 +109,6 @@ export function JoinForm() {
       </div>
 
       <div style={{ marginTop: 22 }}>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 9,
-            letterSpacing: 2,
-            color: INK_SOFT,
-            marginBottom: 6,
-          }}
-        >
-          ROOM ID
-        </div>
         <SBox
           bg={PAPER_WARM}
           stroke={error ? ACCENT_RED : INK}
