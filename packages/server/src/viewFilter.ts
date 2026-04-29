@@ -61,6 +61,6 @@ export function buildView(
     roomId,
     self: self ? toSelfPlayer(self) : null,
     others: state.players.filter((p) => p.id !== forPlayerId).map(toPublicPlayer),
-    currentAuction: toPublicAuction(state.currentAuction),
+    currentAuction: toPublicAuction(state.currentAuction, state.phase),
   }
 }
