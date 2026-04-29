@@ -297,20 +297,9 @@ function WaitingSheet({ message }: { message: string }) {
       />
       <div
         style={{
-          fontFamily: FONT_MONO,
-          fontSize: 10,
-          letterSpacing: 2,
-          color: "rgba(246,238,219,0.5)",
-        }}
-      >
-        WAITING
-      </div>
-      <div
-        style={{
           fontFamily: FONT_SERIF,
           fontSize: 18,
           fontWeight: 700,
-          marginTop: 4,
           color: PAPER,
         }}
       >
