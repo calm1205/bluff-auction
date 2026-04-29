@@ -83,16 +83,6 @@ export function JoinForm() {
         >
           ← もどる
         </button>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            letterSpacing: 2,
-            color: INK_SOFT,
-          }}
-        >
-          GUEST · 1 / 1
-        </div>
       </div>
 
       <div style={{ marginTop: 24 }}>
