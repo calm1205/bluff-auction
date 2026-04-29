@@ -243,6 +243,3 @@ function BrandPair({
     </div>
   )
 }
-
-// ハッタリ判定の表示色を見せるための未使用エクスポート防止
-export const _accentGreen = ACCENT_GREEN
