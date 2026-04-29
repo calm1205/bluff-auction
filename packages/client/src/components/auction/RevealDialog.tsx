@@ -3,7 +3,6 @@ import type { Brand, PlayerId, PublicAuctionView, PublicPlayerView } from "@bluf
 import { socket } from "../../socket.js"
 import {
   ACCENT_GOLD,
-  ACCENT_GREEN,
   ACCENT_RED,
   BRAND_LABEL_JP,
   CardFace,
