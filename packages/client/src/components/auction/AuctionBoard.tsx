@@ -7,6 +7,7 @@ import { CurrentBidDisplay } from "./CurrentBidDisplay.js"
 import { AuctionCardArt } from "./AuctionCardArt.js"
 import { SellerSheet } from "./SellerSheet.js"
 import { BidSheet } from "./BidSheet.js"
+import { MyHandStrip } from "./MyHandStrip.js"
 
 const THEATER_BG = "#120e0c"
 
@@ -228,10 +229,12 @@ export function AuctionBoard() {
             pointerEvents: "auto",
             background: "#0d0a08",
             borderTop: `1px solid rgba(246,238,219,0.1)`,
-            padding: "8px 14px",
           }}
         >
-          <MyStatsBar self={view.self} />
+          {!(inListing && amSeller) && <MyHandStrip hand={view.self.hand} />}
+          <div style={{ padding: "8px 14px" }}>
+            <MyStatsBar self={view.self} />
+          </div>
         </div>
       </div>
     </div>
