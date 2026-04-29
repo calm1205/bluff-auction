@@ -172,6 +172,7 @@ export async function saveRoomState(tx: Tx, state: GameState, roomId: string): P
       highestBidderId: state.currentAuction.highestBidderId,
       passedPlayerIds: state.currentAuction.passedPlayerIds,
       currentBidderId: state.currentAuction.currentBidderId,
+      revealAckedIds: state.currentAuction.revealAckedIds,
     })
   }
 }
