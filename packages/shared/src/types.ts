@@ -35,6 +35,8 @@ export type Auction = {
   passedPlayerIds: PlayerId[]
   // bidding フェーズ中、次にアクション (bid/pass) する番のプレイヤー
   currentBidderId: PlayerId | null
+  // transaction (reveal) フェーズで確認 ack 済みのプレイヤー
+  revealAckedIds: PlayerId[]
 }
 
 export type GameState = {
