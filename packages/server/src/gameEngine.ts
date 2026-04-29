@@ -451,5 +451,9 @@ export function cpuActOnce(state: GameState): EngineResult {
     return bid(state, cpu.id, minAmount)
   }
 
+  if (state.phase === "transaction") {
+    return ackReveal(state, cpu.id)
+  }
+
   return ok([])
 }
