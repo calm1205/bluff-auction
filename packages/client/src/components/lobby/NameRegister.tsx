@@ -5,7 +5,6 @@ import { setStoredPlayerId } from "../../utils/playerId.js"
 import {
   ACCENT_RED,
   FONT_BODY,
-  FONT_MONO,
   FONT_SERIF,
   INK,
   INK_SOFT,
@@ -72,26 +71,7 @@ export function NameRegister({ initialError, onRegistered }: Props) {
       <div style={{ marginTop: 32 }}>
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              letterSpacing: 2,
-              color: INK_SOFT,
-            }}
-          >
-            YOUR NAME
-          </div>
-        </div>
-        <div
-          style={{
             position: "relative",
-            marginTop: 6,
             borderBottom: `2px solid ${INK}`,
             paddingBottom: 6,
           }}
