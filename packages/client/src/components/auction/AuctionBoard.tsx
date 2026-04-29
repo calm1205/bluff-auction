@@ -8,6 +8,7 @@ import { AuctionCardArt } from "./AuctionCardArt.js"
 import { SellerSheet } from "./SellerSheet.js"
 import { BidSheet } from "./BidSheet.js"
 import { MyHandStrip } from "./MyHandStrip.js"
+import { RevealDialog } from "./RevealDialog.js"
 
 const THEATER_BG = "#120e0c"
 
@@ -237,6 +238,10 @@ export function AuctionBoard() {
           </div>
         </div>
       </div>
+
+      {view.phase === "transaction" && a && (
+        <RevealDialog auction={a} selfId={view.self.id} players={allPlayers} />
+      )}
     </div>
   )
 }
