@@ -312,7 +312,7 @@ function settleAuction(state: GameState): EngineResult {
   const seller = getPlayer(state, auction.sellerId)!
 
   if (auction.highestBidderId === null) {
-    // unsold
+    // unsold: reveal は不要、即 listing へ
     const recipients = state.players.filter((p) => p.id !== seller.id)
     const { share } = distributeUnsoldPenalty(auction.startingBid, recipients.length)
     const totalPaid = share * recipients.length
@@ -328,39 +328,61 @@ function settleAuction(state: GameState): EngineResult {
       amount: totalPaid,
       recipientIds: recipients.map((r) => r.id),
     })
-  } else {
-    const winner = getPlayer(state, auction.highestBidderId)!
-    winner.cash -= auction.currentBid
-    seller.cash += auction.currentBid
-    winner.hand.push(auction.card)
 
-    // fake consumption
-    if (auction.declaredBrand !== seller.brand) {
-      seller.fakesUsed += 1
-    }
-
-    events.push({
-      type: "auction-revealed",
-      to: winner.id,
-      brand: auction.card.brand,
-    })
-
-    // victory check
-    if (hasFullSet(winner)) {
-      state.winnerId = winner.id
-      state.phase = "ended"
-      state.currentAuction = null
-      events.push({ type: "view-update" })
-      events.push({ type: "game-ended", winnerId: winner.id })
-      return ok(events)
-    }
+    state.currentAuction = null
+    state.turnIndex = nextTurnIndex(state.turnIndex, state.turnOrder.length)
+    state.phase = "listing"
+    events.push({ type: "view-update" })
+    return ok(events)
   }
 
+  // sold: 落札処理 → reveal フェーズで停止し、全員 ack を待つ
+  const winner = getPlayer(state, auction.highestBidderId)!
+  winner.cash -= auction.currentBid
+  seller.cash += auction.currentBid
+  winner.hand.push(auction.card)
+
+  // fake consumption
+  if (auction.declaredBrand !== seller.brand) {
+    seller.fakesUsed += 1
+  }
+
+  // 勝利成立 (4 ブランド揃え) の場合は reveal を挟まず即終了
+  if (hasFullSet(winner)) {
+    state.winnerId = winner.id
+    state.phase = "ended"
+    state.currentAuction = null
+    events.push({ type: "view-update" })
+    events.push({ type: "game-ended", winnerId: winner.id })
+    return ok(events)
+  }
+
+  // reveal フェーズへ。bidding 用の手番情報はクリアし、ack 集計を初期化
+  auction.currentBidderId = null
+  auction.revealAckedIds = []
+  state.phase = "transaction"
+  events.push({ type: "view-update" })
+  return ok(events)
+}
+
+// reveal 確認 ack。全員揃ったら listing に進む
+export function ackReveal(state: GameState, senderId: PlayerId): EngineResult {
+  if (state.phase !== "transaction") return err("wrong-phase", "reveal フェーズではない")
+  const auction = state.currentAuction
+  if (!auction) return err("no-auction", "競り情報なし")
+  if (!state.players.some((p) => p.id === senderId)) return err("no-player", "プレイヤー不在")
+  if (auction.revealAckedIds.includes(senderId)) return err("already-acked", "確認済み")
+
+  auction.revealAckedIds.push(senderId)
+
+  const allAcked = state.players.every((p) => auction.revealAckedIds.includes(p.id))
+  if (!allAcked) return ok([{ type: "view-update" }])
+
+  // 全員 ack 揃った → listing に進行
   state.currentAuction = null
   state.turnIndex = nextTurnIndex(state.turnIndex, state.turnOrder.length)
   state.phase = "listing"
-  events.push({ type: "view-update" })
-  return ok(events)
+  return ok([{ type: "view-update" }])
 }
 
 function pickRandom<T>(arr: readonly T[]): T {
