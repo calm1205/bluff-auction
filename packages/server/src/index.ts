@@ -10,6 +10,7 @@ import type {
   ServerToClientEvents,
 } from "@bluff-auction/shared"
 import {
+  ackReveal,
   bid,
   cpuActOnce,
   findActiveCpu,
@@ -275,6 +276,30 @@ async function main() {
         ack?.(ackFromResult(result.result))
       } catch (e) {
         console.error("[server] pass error", e)
+        ack?.(dbErrorAck)
+      }
+    })
+
+    socket.on("ack-reveal", async (ack) => {
+      try {
+        const result = await withTx(async (tx) => {
+          const s = await loadRoomState(tx, roomId)
+          if (!s) return { kind: "no-room" as const }
+          const res = ackReveal(s, playerId)
+          if (res.ok) await saveRoomState(tx, s, roomId)
+          return { kind: "engine" as const, result: res, state: s }
+        })
+        if (result.kind === "no-room") {
+          ack?.({ ok: false, code: "not-found", message: "ルームが存在しない" })
+          return
+        }
+        if (result.result.ok) {
+          dispatchEvents(result.result.events, result.state, roomId)
+          scheduleCpuTurn(roomId)
+        }
+        ack?.(ackFromResult(result.result))
+      } catch (e) {
+        console.error("[server] ack-reveal error", e)
         ack?.(dbErrorAck)
       }
     })
