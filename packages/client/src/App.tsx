@@ -81,12 +81,21 @@ export function App() {
           clearStoredRoomId()
           return
         }
+        // 自分がそのルームに居ない (= サーバー側で離脱扱いになっている) なら整理
+        const myId = getStoredPlayerId()
+        const inRoom = myId != null && v.others.some((p) => p.id === myId)
+        if (!inRoom) {
+          clearStoredRoomId()
+          return
+        }
         setRoomId(stored)
         connectSocket(stored)
       } catch (e) {
         if (cancelled) return
         if (e instanceof api.HttpError && e.status === 404) {
           clearStoredRoomId()
+        } else {
+          console.error("[App] roomId 復帰失敗 (一時障害想定で localStorage は保持)", e)
         }
       }
     }
