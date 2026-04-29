@@ -7,6 +7,7 @@ export type ClientToServerEvents = {
   ) => void
   bid: (payload: { amount: number }, ack?: (res: AckResponse) => void) => void
   pass: (ack?: (res: AckResponse) => void) => void
+  "ack-reveal": (ack?: (res: AckResponse) => void) => void
 }
 
 export type ServerToClientEvents = {
