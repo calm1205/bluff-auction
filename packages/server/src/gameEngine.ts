@@ -210,6 +210,7 @@ export function listCard(
     highestBidderId: null,
     passedPlayerIds: [],
     currentBidderId: firstBidderId(state, senderId),
+    revealAckedIds: [],
   }
   state.phase = "bidding"
   return ok([{ type: "view-update" }])
