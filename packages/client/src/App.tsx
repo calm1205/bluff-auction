@@ -107,7 +107,6 @@ export function App() {
   // Socket イベント購読
   useEffect(() => {
     socket.on("view-update", (v) => setView(v))
-    socket.on("auction-revealed", (r) => setRevealed(r))
     socket.on("game-ended", (p) => setWinner(p.winnerId))
     socket.on("unsold-penalty", (p) => {
       console.log("[unsold-penalty]", p)
@@ -116,16 +115,11 @@ export function App() {
 
     return () => {
       socket.off("view-update")
-      socket.off("auction-revealed")
       socket.off("game-ended")
       socket.off("unsold-penalty")
       socket.off("error-event")
     }
-  }, [
-	setView,
-	setWinner,
-	setError
-])
+  }, [setView, setWinner, setError])
 
   if (authStatus === "loading") {
     return <div style={{ padding: 24 }}>読み込み中...</div>
