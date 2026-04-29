@@ -391,7 +391,6 @@ function pickRandom<T>(arr: readonly T[]): T {
 
 // 現在のターン担当の CPU が存在すれば、その CPU の playerId を返す
 export function findActiveCpu(state: GameState): Player | null {
-  if (state.phase !== "listing" && state.phase !== "bidding") return null
   if (state.turnOrder.length === 0) return null
   if (state.phase === "listing") {
     const sellerId = state.turnOrder[state.turnIndex]
@@ -399,12 +398,26 @@ export function findActiveCpu(state: GameState): Player | null {
     const seller = getPlayer(state, sellerId)
     return seller && seller.isCpu ? seller : null
   }
-  // bidding: 現在の手番が CPU の場合のみ自動進行対象
-  const auction = state.currentAuction
-  if (!auction) return null
-  if (!auction.currentBidderId) return null
-  const bidder = getPlayer(state, auction.currentBidderId)
-  return bidder && bidder.isCpu ? bidder : null
+  if (state.phase === "bidding") {
+    // 現在の手番が CPU の場合のみ自動進行対象
+    const auction = state.currentAuction
+    if (!auction) return null
+    if (!auction.currentBidderId) return null
+    const bidder = getPlayer(state, auction.currentBidderId)
+    return bidder && bidder.isCpu ? bidder : null
+  }
+  if (state.phase === "transaction") {
+    // reveal フェーズ: まだ ack していない CPU を順に処理
+    const auction = state.currentAuction
+    if (!auction) return null
+    for (const p of state.players) {
+      if (!p.isCpu) continue
+      if (auction.revealAckedIds.includes(p.id)) continue
+      return p
+    }
+    return null
+  }
+  return null
 }
 
 // CPU が現在のフェーズに対して取るべき 1 アクションを実行する。
